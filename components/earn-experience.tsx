@@ -163,6 +163,7 @@ export function EarnExperience() {
         });
 
         const payload = (await response.json()) as QuotePayload & { message?: string };
+          console.log("交钱啦！！！！",payload)
 
         if (!response.ok) {
           throw new Error(payload.message ?? "Quote request failed.");
@@ -195,11 +196,13 @@ export function EarnExperience() {
 
     try {
       const response = await fetch(`/api/strategy?duration=${duration}`);
+        console.log("--response--",response)
       if (!response.ok) {
         throw new Error("Strategy request failed.");
       }
 
       const payload = (await response.json()) as StrategyResult;
+        console.log("--payload--",payload)
 
       window.setTimeout(() => {
         setStrategy(payload);
@@ -549,15 +552,13 @@ export function EarnExperience() {
                       hint={isConnected ? `${address?.slice(0, 6)}...${address?.slice(-4)}` : "先连接钱包以生成实时报价"}
                     />
                     <DataTile
-                      label="预计到手"
+                      label="到期预计价值"
                       value={
-                        quotedReceive
-                          ? `${quotedReceive.minimum} - ${quotedReceive.best} ${strategy.inputToken}`
-                          : projections
-                            ? `$${projections.projectedMin} - $${projections.projectedMax}`
-                            : "-"
+                        projections
+                          ? `$${projections.projectedMin} - $${projections.projectedMax}`
+                          : "-"
                       }
-                      hint={quote ? "来自真实 Composer quote" : "未连接钱包时显示本地估算"}
+                      hint="基于当前 APY 的估算，实际收益以链上为准"
                     />
                   </div>
                   <div className="mt-5 grid gap-4 md:grid-cols-2">

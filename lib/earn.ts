@@ -106,17 +106,17 @@ const protocolMatchers: Record<Exclude<DurationOption, 180>, string> = {
 const fallbackStrategies: Record<DurationOption, StrategyResult> = {
   30: {
     duration: 30,
-    protocolKey: "aave-v3",
-    protocolName: "Aave",
-    vaultName: "Aave USDC",
-    vaultAddress: "0x98c23e9d8f34fefb1b7bd6a91b7ff122f4e16f5c",
-    chainId: 1,
-    chainName: "Ethereum",
+    protocolKey: "lifi-earn",
+    protocolName: "Earn Vault",
+    vaultName: "Base USDC Vault",
+    vaultAddress: "0x7BfA7C4f149E7415b73bdeDfe609237e29CBF34A",
+    chainId: 8453,
+    chainName: "Base",
     apy: 2.37,
     inputToken: "USDC",
-    inputTokenAddress: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    inputTokenAddress: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
     inputTokenDecimals: 6,
-    vaultId: "fallback-aave-usdc",
+    vaultId: "fallback-base-usdc",
     estimatedReturnMin: 2.54,
     estimatedReturnMax: 3.12,
     riskLabel: "低",
@@ -124,17 +124,17 @@ const fallbackStrategies: Record<DurationOption, StrategyResult> = {
   },
   90: {
     duration: 90,
-    protocolKey: "morpho-v1",
-    protocolName: "Morpho",
-    vaultName: "STEAKUSDC",
-    vaultAddress: "0xbeef01735c132ada46aa9aa4c54623caa92a64cb",
-    chainId: 1,
-    chainName: "Ethereum",
+    protocolKey: "lifi-earn",
+    protocolName: "Earn Vault",
+    vaultName: "Base USDC Vault",
+    vaultAddress: "0x7BfA7C4f149E7415b73bdeDfe609237e29CBF34A",
+    chainId: 8453,
+    chainName: "Base",
     apy: 2.26,
     inputToken: "USDC",
-    inputTokenAddress: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    inputTokenAddress: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
     inputTokenDecimals: 6,
-    vaultId: "fallback-morpho-usdc",
+    vaultId: "fallback-base-usdc",
     estimatedReturnMin: 9.12,
     estimatedReturnMax: 10.4,
     riskLabel: "中低",
@@ -143,17 +143,17 @@ const fallbackStrategies: Record<DurationOption, StrategyResult> = {
   },
   180: {
     duration: 180,
-    protocolKey: "morpho-v1",
-    protocolName: "Morpho",
-    vaultName: "BBQUSDCRESERVOIR",
-    vaultAddress: "0xbeef346d7099865208ff331e4f648f4154ddaa05",
-    chainId: 1,
-    chainName: "Ethereum",
+    protocolKey: "lifi-earn",
+    protocolName: "Earn Vault",
+    vaultName: "Base USDC Vault",
+    vaultAddress: "0x7BfA7C4f149E7415b73bdeDfe609237e29CBF34A",
+    chainId: 8453,
+    chainName: "Base",
     apy: 3.25,
     inputToken: "USDC",
-    inputTokenAddress: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    inputTokenAddress: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
     inputTokenDecimals: 6,
-    vaultId: "fallback-top-usdc",
+    vaultId: "fallback-base-usdc",
     estimatedReturnMin: 19.3,
     estimatedReturnMax: 22.6,
     riskLabel: "中低",
@@ -184,7 +184,8 @@ export async function discoverStrategy(duration: DurationOption): Promise<Strate
     )
     .sort((left, right) => getVaultApy(right) - getVaultApy(left));
 
-  const winner = vaults[0];
+  const baseFirst = vaults.filter((vault) => vault.chainId === 8453);
+  const winner = (baseFirst.length ? baseFirst : vaults)[0];
 
   if (!winner) {
     return fallbackStrategies[duration];
