@@ -22,6 +22,8 @@ import {
   type StrategyResult
 } from "@/lib/earn";
 import EarnGiftLanding from "@/components/EarnGiftLanding";
+import HowItWorksSection from "@/components/HowItWorksSection";
+import FAQSection from "@/components/FAQSection";
 
 type FlowStep = "idle" | "analyzing" | "amount" | "depositing" | "success";
 
@@ -427,6 +429,8 @@ export function EarnExperience() {
 
 
           <EarnGiftLanding />
+          <HowItWorksSection/>
+
 
 
 
@@ -758,6 +762,7 @@ export function EarnExperience() {
             )}
           </div>
         </section>
+          <FAQSection/>
       </main>
     </div>
   );
