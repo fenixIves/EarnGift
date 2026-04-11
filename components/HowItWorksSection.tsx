@@ -129,7 +129,7 @@ export default function HowItWorksSection() {
             ref={subtitleRef}
             className="mt-6 lg:mt-0 lg:w-[36vw] font-body text-lg text-[#141414]/70 leading-relaxed"
           >
-            We've stripped away the noise—so you can start earning in under 2 minutes.
+            We&apos;ve stripped away the noise so you can start earning in under 2 minutes.
           </p>
         </div>
 

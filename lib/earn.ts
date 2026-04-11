@@ -60,7 +60,7 @@ export type StrategyResult = {
   vaultId: string;
   estimatedReturnMin: number;
   estimatedReturnMax: number;
-  riskLabel: "低" | "中低";
+  riskLabel: "Low" | "Low-Medium";
   pointsLabel?: string;
   source: "live" | "fallback";
 };
@@ -79,20 +79,20 @@ export type PortfolioPosition = {
 export const strategyCards: StrategyCard[] = [
   {
     duration: 30,
-    label: "30 天",
-    subtitle: "短期灵活",
+    label: "30 Days",
+    subtitle: "Short-term flexible",
     protocolHint: "Aave"
   },
   {
     duration: 90,
-    label: "90 天",
-    subtitle: "均衡收益",
+    label: "90 Days",
+    subtitle: "Balanced yield",
     protocolHint: "Morpho"
   },
   {
     duration: 180,
-    label: "180 天",
-    subtitle: "最大化收益"
+    label: "180 Days",
+    subtitle: "Maximize returns"
   }
 ];
 
@@ -119,7 +119,7 @@ const fallbackStrategies: Record<DurationOption, StrategyResult> = {
     vaultId: "fallback-base-usdc",
     estimatedReturnMin: 2.54,
     estimatedReturnMax: 3.12,
-    riskLabel: "低",
+    riskLabel: "Low",
     source: "fallback"
   },
   90: {
@@ -137,8 +137,8 @@ const fallbackStrategies: Record<DurationOption, StrategyResult> = {
     vaultId: "fallback-base-usdc",
     estimatedReturnMin: 9.12,
     estimatedReturnMax: 10.4,
-    riskLabel: "中低",
-    pointsLabel: "含积分加成",
+    riskLabel: "Low-Medium",
+    pointsLabel: "Includes points boost",
     source: "fallback"
   },
   180: {
@@ -156,7 +156,7 @@ const fallbackStrategies: Record<DurationOption, StrategyResult> = {
     vaultId: "fallback-base-usdc",
     estimatedReturnMin: 19.3,
     estimatedReturnMax: 22.6,
-    riskLabel: "中低",
+    riskLabel: "Low-Medium",
     source: "fallback"
   }
 };
@@ -250,9 +250,9 @@ export function calculateProjection(amount: number, apy: number, duration: Durat
 }
 
 export function createShareText(amount: number, strategy: StrategyResult) {
-  return `我把 ${amount} ${strategy.inputToken} 存进了 ${strategy.protocolName} 收益池，年化 ${strategy.apy.toFixed(
+  return `I deposited ${amount} ${strategy.inputToken} into ${strategy.protocolName} yield vault at ${strategy.apy.toFixed(
     2
-  )}% ，每天都在赚钱。`;
+  )}% APY, earning every day.`;
 }
 
 function normalizeVault(duration: DurationOption, vault: EarnVault): StrategyResult {
@@ -275,8 +275,8 @@ function normalizeVault(duration: DurationOption, vault: EarnVault): StrategyRes
     vaultId: vault.slug,
     estimatedReturnMin: fallbackEstimate(duration, apy).min,
     estimatedReturnMax: fallbackEstimate(duration, apy).max,
-    riskLabel: duration === 30 ? "低" : "中低",
-    pointsLabel: vault.depositPacks?.[0]?.name ? `${vault.depositPacks[0].name} 直达存款` : undefined,
+    riskLabel: duration === 30 ? "Low" : "Low-Medium",
+    pointsLabel: vault.depositPacks?.[0]?.name ? `${vault.depositPacks[0].name} Direct Deposit` : undefined,
     source: "live"
   };
 }
