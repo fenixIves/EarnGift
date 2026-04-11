@@ -1,9 +1,16 @@
 "use client";
 
 import html2canvas from "html2canvas";
+import { AnimatePresence, motion } from "framer-motion";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { Float, MeshDistortMaterial, Sparkles } from "@react-three/drei";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { ChevronDown, ArrowUpRight, ShieldCheck, Orbit, Waves, Wallet2 } from "lucide-react";
 import { erc20Abi, formatUnits, parseUnits, type Address, type Hash, type Hex } from "viem";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, forwardRef, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import * as THREE from "three";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
   useAccount,
   useChainId,
@@ -21,9 +28,8 @@ import {
   type PortfolioPosition,
   type StrategyResult
 } from "@/lib/earn";
-import EarnGiftLanding from "@/components/EarnGiftLanding";
-import HowItWorksSection from "@/components/HowItWorksSection";
-import FAQSection from "@/components/FAQSection";
+
+gsap.registerPlugin(ScrollTrigger);
 
 type FlowStep = "idle" | "analyzing" | "amount" | "depositing" | "success";
 
@@ -54,12 +60,69 @@ type QuotePayload = {
 };
 
 const analysisMessages = [
-  "分析你偏好的期限与熟悉度",
-  "筛选最适合普通用户的收益池",
-  "平衡收益、流动性与风险"
+  "Reading your preferred time horizon",
+  "Finding the most suitable yield vault",
+  "Balancing yield, liquidity, and risk"
+];
+
+const promiseBlocks = [
+  {
+    index: "01",
+    title: "No more DeFi jargon",
+    body: "Users should not need to understand APY, TVL, vaults, or liquidity pools before they can start earning."
+  },
+  {
+    index: "02",
+    title: "Pick a duration, not a protocol",
+    body: "Instead of comparing dozens of strategies, users answer one simple question: how long do you want to save?"
+  },
+  {
+    index: "03",
+    title: "See your money grow in real time",
+    body: "After deposit, the experience turns into a live earnings view so growth feels visible instead of abstract."
+  }
+];
+
+const flowMoments = [
+  {
+    title: "Pick a horizon",
+    copy: "Users choose 30, 90, or 180 days. The system translates that simple answer into the best matching strategy.",
+    icon: Orbit
+  },
+  {
+    title: "Quote the route",
+    copy: "Before signing, users can see the deposit amount, estimated value, gas, and approval route in one place.",
+    icon: Waves
+  },
+  {
+    title: "Track the proof",
+    copy: "Transaction hashes, portfolio checks, and share actions make the full deposit journey visible and trustworthy.",
+    icon: ShieldCheck
+  }
+];
+
+const faqItems = [
+  {
+    question: "Is EarnGift custodial?",
+    answer: "No. Your funds stay in your wallet flow and move through non-custodial strategies. The product simplifies the experience, not ownership."
+  },
+  {
+    question: "Why focus on 30 / 90 / 180 days?",
+    answer: "Time is easier to understand than protocol mechanics. Users make one simple choice, and the system maps that to a strategy."
+  },
+  {
+    question: "What happens if live data is unavailable?",
+    answer: "The flow falls back to a demo recommendation and labels it clearly, instead of pretending uncertain data is live."
+  },
+  {
+    question: "What is the point of the motion system?",
+    answer: "Motion is there to make state changes, progress, and confidence easier to read. It should support the product, not distract from it."
+  }
 ];
 
 export function EarnExperience() {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const shareCardRef = useRef<HTMLDivElement>(null);
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
   const publicClient = usePublicClient();
@@ -87,7 +150,9 @@ export function EarnExperience() {
   const [portfolioPositions, setPortfolioPositions] = useState<PortfolioPosition[]>([]);
   const [portfolioLoading, setPortfolioLoading] = useState(false);
   const [portfolioMessage, setPortfolioMessage] = useState<string | null>(null);
-  const shareCardRef = useRef<HTMLDivElement>(null);
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [showInviteCard, setShowInviteCard] = useState(false);
+  const [currentUrl, setCurrentUrl] = useState("");
 
   const numericAmount = Number(amount || 0);
   const projections = useMemo(() => {
@@ -110,6 +175,105 @@ export function EarnExperience() {
       minimum: Number(formatUnits(BigInt(quote.estimate.toAmountMin ?? "0"), decimals)).toFixed(4)
     };
   }, [quote, strategy]);
+
+  useEffect(() => {
+    setCurrentUrl(window.location.href);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!rootRef.current) {
+      return;
+    }
+
+    const ctx = gsap.context(() => {
+      const sections = gsap.utils.toArray<HTMLElement>("[data-story-section]");
+      sections.forEach((section, index) => {
+        const chunks = section.querySelectorAll<HTMLElement>("[data-reveal-chunk]");
+        gsap.fromTo(
+          chunks,
+          { opacity: 0, y: 80, scale: 0.96 },
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            duration: 1.2,
+            stagger: 0.08,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: section,
+              start: "top 78%",
+              end: "top 30%",
+              scrub: index === 0 ? false : 0.9
+            }
+          }
+        );
+
+        gsap.fromTo(
+          section,
+          { opacity: 0.55 },
+          {
+            opacity: 1,
+            ease: "none",
+            scrollTrigger: {
+              trigger: section,
+              start: "top bottom",
+              end: "bottom center",
+              scrub: true
+            }
+          }
+        );
+      });
+
+      gsap.utils.toArray<HTMLElement>("[data-parallax='slow']").forEach((node) => {
+        gsap.to(node, {
+          yPercent: -14,
+          ease: "none",
+          scrollTrigger: {
+            trigger: rootRef.current,
+            start: "top top",
+            end: "bottom bottom",
+            scrub: true
+          }
+        });
+      });
+
+      gsap.utils.toArray<HTMLElement>("[data-parallax='fast']").forEach((node) => {
+        gsap.to(node, {
+          yPercent: -28,
+          ease: "none",
+          scrollTrigger: {
+            trigger: rootRef.current,
+            start: "top top",
+            end: "bottom bottom",
+            scrub: true
+          }
+        });
+      });
+
+      gsap.utils.toArray<HTMLElement>("[data-progress-line]").forEach((node) => {
+        gsap.fromTo(
+          node,
+          { scaleX: 0.2, opacity: 0.2 },
+          {
+            scaleX: 1,
+            opacity: 1,
+            transformOrigin: "left center",
+            ease: "none",
+            scrollTrigger: {
+              trigger: node,
+              start: "top 86%",
+              end: "bottom 45%",
+              scrub: true
+            }
+          }
+        );
+      });
+
+      ScrollTrigger.refresh();
+    }, rootRef);
+
+    return () => ctx.revert();
+  }, []);
 
   useEffect(() => {
     if (step !== "success" || !strategy || !depositedAt || !numericAmount) {
@@ -166,7 +330,6 @@ export function EarnExperience() {
         });
 
         const payload = (await response.json()) as QuotePayload & { message?: string };
-          console.log("交钱啦！！！！",payload)
 
         if (!response.ok) {
           throw new Error(payload.message ?? "Quote request failed.");
@@ -175,7 +338,7 @@ export function EarnExperience() {
         setQuote(payload);
       } catch (quoteIssue) {
         setQuote(null);
-        setQuoteError(quoteIssue instanceof Error ? quoteIssue.message : "暂时无法生成存款报价。");
+        setQuoteError(quoteIssue instanceof Error ? quoteIssue.message : "Unable to generate a deposit quote right now.");
       } finally {
         setQuoteLoading(false);
       }
@@ -199,13 +362,11 @@ export function EarnExperience() {
 
     try {
       const response = await fetch(`/api/strategy?duration=${duration}`);
-        console.log("--response--",response)
       if (!response.ok) {
         throw new Error("Strategy request failed.");
       }
 
       const payload = (await response.json()) as StrategyResult;
-        console.log("--payload--",payload)
 
       window.setTimeout(() => {
         setStrategy(payload);
@@ -213,7 +374,7 @@ export function EarnExperience() {
         setIsLoading(false);
       }, 1400);
     } catch {
-      setError("暂时没拿到实时策略，已为你切换到 demo 推荐。");
+      setError("Live strategy data is unavailable right now. Switched to the demo recommendation.");
       setStrategy(null);
       setStep("idle");
       setIsLoading(false);
@@ -227,7 +388,7 @@ export function EarnExperience() {
 
     try {
       setError(null);
-      setStatusMessage("准备校验链、授权与存款交易。");
+      setStatusMessage("Checking the chain, approval, and deposit transaction.");
       setStep("depositing");
       setApprovalState("active");
       setDepositState("idle");
@@ -235,7 +396,7 @@ export function EarnExperience() {
       setPortfolioMessage(null);
 
       if (chainId !== strategy.chainId) {
-        setStatusMessage(`正在切换到 ${strategy.chainName}...`);
+        setStatusMessage(`Switching to ${strategy.chainName}...`);
         await switchChainAsync({ chainId: strategy.chainId });
       }
 
@@ -251,7 +412,7 @@ export function EarnExperience() {
         })) as bigint;
 
         if (allowance < amountRaw) {
-          setStatusMessage("等待钱包确认授权。");
+          setStatusMessage("Waiting for wallet approval.");
           const approved = await writeContractAsync({
             address: strategy.inputTokenAddress as Address,
             abi: erc20Abi,
@@ -268,7 +429,7 @@ export function EarnExperience() {
 
       setApprovalState("complete");
       setDepositState("active");
-      setStatusMessage("授权完成，正在提交存款交易。");
+      setStatusMessage("Approval complete. Submitting the deposit transaction.");
 
       const transactionRequest = quote.transactionRequest;
       const hash = await sendTransactionAsync({
@@ -292,11 +453,11 @@ export function EarnExperience() {
         yearlyYield: projections?.yearlyValue ?? 0,
         updatedAt: timestamp
       });
-      setStatusMessage("链上存款已确认。");
+      setStatusMessage("Deposit confirmed on-chain.");
       setStep("success");
       await refreshPortfolio(address);
     } catch (transactionIssue) {
-      setError(transactionIssue instanceof Error ? transactionIssue.message : "存款流程中断。");
+      setError(transactionIssue instanceof Error ? transactionIssue.message : "The deposit flow was interrupted.");
       setStatusMessage(null);
       setStep("amount");
       setApprovalState("idle");
@@ -326,12 +487,12 @@ export function EarnExperience() {
       setPortfolioPositions(payload.positions ?? []);
       setPortfolioMessage(
         (payload.positions ?? []).length
-          ? "已从 LI.FI Earn portfolio 拉取到实时持仓。"
-          : "暂时还没抓到持仓，链上索引可能还在同步。"
+          ? "Loaded a live position from the LI.FI Earn portfolio."
+          : "No position found yet. Indexing may still be in progress."
       );
     } catch (portfolioIssue) {
       setPortfolioMessage(
-        portfolioIssue instanceof Error ? portfolioIssue.message : "暂时无法读取 portfolio。"
+        portfolioIssue instanceof Error ? portfolioIssue.message : "Unable to load the portfolio right now."
       );
     } finally {
       setPortfolioLoading(false);
@@ -344,7 +505,7 @@ export function EarnExperience() {
     }
 
     const canvas = await html2canvas(shareCardRef.current, {
-      backgroundColor: "#f4efe6",
+      backgroundColor: "#07111f",
       scale: 2
     });
 
@@ -357,265 +518,402 @@ export function EarnExperience() {
     const text = createShareText(numericAmount, strategy);
 
     try {
-      await navigator.clipboard.writeText(`${text} 你也来试试 -> ${window.location.href}`);
-      setShareMessage("分享卡片已生成，并已复制分享文案。");
+      await navigator.clipboard.writeText(`${text} Try it here -> ${currentUrl}`);
+      setShareMessage("Share card generated and share text copied.");
     } catch {
-      setShareMessage("分享卡片已生成。");
+      setShareMessage("Share card generated.");
     }
   };
 
   return (
-    <div className="relative min-h-screen">
-      <header className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-6 lg:px-10">
-        <div className="display text-xl tracking-[0.2em] text-cocoa">EarnGift</div>
+    <div ref={rootRef} className="lux-shell text-white">
+      <AnimatedBackdrop />
+      <div className="ambient-grid" />
+      <div className="ambient-noise" />
+      <div
+        className="ambient-orb ambient-orb-a"
+        data-parallax="slow"
+      />
+      <div
+        className="ambient-orb ambient-orb-b"
+        data-parallax="fast"
+      />
+
+      <header className="relative z-20 mx-auto flex w-full max-w-[1440px] items-center justify-between px-6 py-6 lg:px-10">
         <div className="flex items-center gap-4">
-          <nav className="mono hidden items-center gap-8 text-xs uppercase tracking-[0.25em] text-muted md:flex">
-            <a href="#flow" className="transition hover:text-caramel">
+          <div className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/5 backdrop-blur-md">
+            <Wallet2 className="h-5 w-5 text-[#ffd4aa]" />
+          </div>
+          <div>
+            <div className="text-[11px] uppercase tracking-[0.34em] text-white/45">LI.FI Hackathon</div>
+            <div className="font-display text-xl tracking-[0.24em] text-white">EARNGIFT</div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-5">
+          <nav className="hidden items-center gap-7 text-[11px] uppercase tracking-[0.3em] text-white/55 lg:flex">
+            <a href="#why" className="transition hover:text-white">
+              Narrative
+            </a>
+            <a href="#flow" className="transition hover:text-white">
               Flow
             </a>
-            <a href="#why" className="transition hover:text-caramel">
-              Why it wins
+            <a href="#proof" className="transition hover:text-white">
+              Proof
             </a>
-            <a
-              href="https://docs.li.fi/earn/recipes/discover-and-deposit"
-              target="_blank"
-              rel="noreferrer"
-              className="transition hover:text-caramel"
-            >
-              LiFi docs
+            <a href="#faq" className="transition hover:text-white">
+              FAQ
             </a>
           </nav>
           <ConnectButton />
         </div>
       </header>
 
-      <main className="mx-auto flex max-w-7xl flex-col gap-12 px-6 pb-20 lg:px-10">
-        <section className="section-line pt-10 lg:pt-16">
-          <div className="grid gap-10 lg:grid-cols-[1fr_420px] lg:items-center">
-            <div className="space-y-8">
-              <p className="mono animate-float-up text-xs uppercase tracking-[0.28em] text-caramel">
-                Defi UX Challenge / Warm orange minimal banking
-              </p>
-              <div className="space-y-6">
-                <h1 className="display max-w-5xl text-5xl leading-[0.92] text-cocoa sm:text-6xl lg:text-[7.2rem]">
-                  存钱。
-                  <br />
-                  看它慢慢变多。
-                </h1>
-                <p className="max-w-2xl text-base leading-8 text-muted sm:text-lg">
-                  不讲复杂术语，不塞一堆选项。只回答你想存多久，我们就帮你把钱放到更合适的收益池里。像看储蓄账户一样简单。
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-4">
-                <a href="#flow" className="button-primary px-6 py-4 mono text-sm uppercase tracking-[0.18em]">
-                  开始存钱
-                </a>
-                <a href="#why" className="button-secondary px-6 py-4 mono text-sm uppercase tracking-[0.18em]">
-                  为什么好懂
-                </a>
-              </div>
-              <div className="grid max-w-3xl gap-4 pt-2 sm:grid-cols-3">
-                <Metric label="适合谁" value="第一次用 DeFi 的人" />
-                <Metric label="怎么验证" value="Scan / Portfolio" />
-                <Metric label="体验目标" value="奶奶也看得懂" />
+      <main className="relative z-10 mx-auto flex w-full max-w-[1440px] flex-col px-6 pb-24 lg:px-10">
+        <section
+          data-story-section
+          className="relative grid min-h-[92vh] items-center gap-16 overflow-hidden pb-16 pt-8 lg:grid-cols-[1.05fr_0.95fr] lg:pb-24"
+        >
+          <div className="space-y-8">
+            <div data-reveal-chunk className="inline-flex items-center gap-3 rounded-full border border-white/12 bg-white/6 px-4 py-2 backdrop-blur-md">
+              <span className="h-2 w-2 rounded-full bg-[#ffb476] shadow-[0_0_16px_rgba(255,180,118,0.8)]" />
+              <span className="text-[11px] uppercase tracking-[0.32em] text-white/65">
+                Simple savings, powered by DeFi
+              </span>
+            </div>
+
+            <div className="space-y-6">
+              <RevealText
+                as="p"
+                dataReveal
+                className="max-w-5xl font-display text-[clamp(3rem,11vw,8.7rem)] leading-[0.88] tracking-[-0.04em] text-white"
+                text="Put idle USDC to work like a savings account."
+              />
+              <motion.p
+                data-reveal-chunk
+                initial={{ opacity: 0, y: 28 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-120px" }}
+                transition={{ duration: 0.9, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                className="max-w-2xl text-lg leading-8 text-white/68"
+              >
+                No APY jargon. No protocol hunting. No confusing multi-step flow. Pick how long you want to save, confirm the deposit, and watch your balance grow every second.
+              </motion.p>
+            </div>
+
+            <motion.div
+              data-reveal-chunk
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-120px" }}
+              transition={{ duration: 0.9, delay: 0.28, ease: [0.22, 1, 0.36, 1] }}
+              className="flex flex-wrap gap-4"
+            >
+              <a href="#flow" className="lux-button lux-button-primary">
+                Start saving
+              </a>
+              <a href="#why" className="lux-button lux-button-secondary">
+                How it works
+              </a>
+              <button type="button" onClick={() => setShowInviteCard(true)} className="lux-button lux-button-secondary">
+                Share with friends
+              </button>
+            </motion.div>
+
+            <div data-reveal-chunk className="grid gap-4 md:grid-cols-3">
+              <MetricPanel label="For beginners" value="No DeFi terms" hint="Simple language from the first screen" />
+              <MetricPanel label="Decision model" value="30 / 90 / 180 days" hint="Choose a duration, not a protocol" />
+              <MetricPanel label="Core promise" value="Money grows live" hint="See earnings update after deposit" />
+            </div>
+          </div>
+
+          <div data-reveal-chunk className="relative">
+            <HeroVaultCard
+              selectedDuration={selectedDuration}
+              strategy={strategy}
+              quotedReceive={quotedReceive}
+              amount={numericAmount}
+              onOpenInviteCard={() => setShowInviteCard(true)}
+            />
+          </div>
+        </section>
+
+        <section
+          id="why"
+          data-story-section
+          className="relative grid gap-10 py-10 lg:grid-cols-[0.78fr_1.22fr] lg:py-24"
+        >
+          <div data-reveal-chunk className="sticky top-20 h-fit space-y-6 self-start">
+            <SectionEyebrow>Why EarnGift</SectionEyebrow>
+            <RevealText
+              as="h2"
+              dataReveal
+              className="max-w-xl font-display text-[clamp(2.8rem,5vw,5rem)] leading-[0.95] tracking-[-0.04em]"
+              text="DeFi yield should feel as simple as putting money into savings."
+            />
+            <p className="max-w-lg text-base leading-8 text-white/62">
+              Most yield products talk to people who already understand DeFi. EarnGift talks to everyone else: simple time-based choices, one clear deposit flow, and visible growth after success.
+            </p>
+          </div>
+
+          <div className="grid gap-5 lg:grid-cols-3">
+            {promiseBlocks.map((block, index) => (
+              <motion.article
+                key={block.index}
+                data-reveal-chunk
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-120px" }}
+                transition={{ duration: 0.9, delay: index * 0.12, ease: [0.22, 1, 0.36, 1] }}
+                className="glass-panel story-card group min-h-[320px] p-7"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] uppercase tracking-[0.3em] text-[#ffd4aa]/82">{block.index}</span>
+                  <ArrowUpRight className="h-4 w-4 text-white/45 transition group-hover:-translate-y-1 group-hover:translate-x-1 group-hover:text-[#ffd4aa]" />
+                </div>
+                <h3 className="mt-12 font-display text-3xl leading-tight text-white">{block.title}</h3>
+                <p className="mt-5 text-sm leading-7 text-white/62">{block.body}</p>
+                <div className="mt-10 h-px origin-left bg-gradient-to-r from-[#ffb476] via-white/55 to-transparent" data-progress-line />
+              </motion.article>
+            ))}
+          </div>
+        </section>
+
+        <section data-story-section className="relative py-16 lg:py-24">
+          <div className="glass-panel overflow-hidden p-8 lg:p-10">
+            <div className="marquee-track">
+              <div className="marquee-inner">
+                {Array.from({ length: 2 }).map((_, index) => (
+                  <Fragment key={index}>
+                    <span>THREE.js background</span>
+                    <span>GSAP scroll orchestration</span>
+                    <span>Framer Motion text reveal</span>
+                    <span>Live transaction feedback</span>
+                    <span>Warm metal palette</span>
+                  </Fragment>
+                ))}
               </div>
             </div>
 
-            <div className="coin-stage">
-              <DollarCoin />
+            <div className="mt-10 grid gap-6 lg:grid-cols-3">
+              {flowMoments.map((item, index) => {
+                const Icon = item.icon;
+                return (
+                  <motion.div
+                    key={item.title}
+                    data-reveal-chunk
+                    initial={{ opacity: 0, y: 26 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-120px" }}
+                    transition={{ duration: 0.8, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                    className="rounded-[28px] border border-white/10 bg-black/16 p-6"
+                  >
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/12 bg-white/6">
+                      <Icon className="h-5 w-5 text-[#ffbf86]" />
+                    </div>
+                    <h3 className="mt-7 font-display text-3xl text-white">{item.title}</h3>
+                    <p className="mt-4 text-sm leading-7 text-white/62">{item.copy}</p>
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
         </section>
 
-
-          <EarnGiftLanding />
-          <HowItWorksSection/>
-
-
-
-
-        <section id="flow" className="section-line grid gap-8 pt-8 lg:grid-cols-[0.86fr_1.14fr]">
-          <div className="space-y-5">
-            <p className="mono text-xs uppercase tracking-[0.28em] text-caramel">Five-step Flow</p>
-            <h2 className="display text-4xl leading-tight sm:text-5xl">像填一张温和的存款单，而不是在学协议。</h2>
-            <p className="max-w-xl text-base leading-8 text-muted">
-              整个流程只保留普通用户真正关心的信息：存多久、放哪、预估能多一点多少、现在是不是已经存成功。
+        <section
+          id="flow"
+          data-story-section
+          className="grid gap-10 py-16 lg:grid-cols-[0.74fr_1.26fr] lg:gap-12 lg:py-24"
+        >
+          <div className="space-y-6">
+            <SectionEyebrow>Five-step flow</SectionEyebrow>
+            <RevealText
+              as="h2"
+              dataReveal
+              className="max-w-xl font-display text-[clamp(2.8rem,5vw,5rem)] leading-[0.95] tracking-[-0.04em]"
+              text="A five-step flow that hides complexity behind one simple decision."
+            />
+            <p className="max-w-lg text-base leading-8 text-white/62">
+              First, the user chooses a duration. Then the system finds a strategy, prepares the quote, confirms the deposit, and turns the result into a live growth dashboard.
             </p>
+            <div className="space-y-4">
+              <FlowBullet number="01" title="Pick a duration" copy="Choose 30, 90, or 180 days. No protocol knowledge required." />
+              <FlowBullet number="02" title="Review the route" copy="See the amount, estimated return, gas, and approval details before signing." />
+              <FlowBullet number="03" title="See proof after deposit" copy="Track the transaction, load the portfolio, and share the result with friends." />
+            </div>
           </div>
 
-          <div className="receipt-card rounded-md p-6 sm:p-8">
-            {error ? (
-              <div className="mb-5 border border-caramel/25 bg-caramel/10 px-4 py-3 text-sm text-cocoa">
-                {error}
+          <motion.div
+            data-reveal-chunk
+            initial={{ opacity: 0, y: 36, rotateX: 8 }}
+            whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
+            viewport={{ once: true, margin: "-120px" }}
+            transition={{ duration: 0.95, ease: [0.22, 1, 0.36, 1] }}
+            className="glass-panel flow-panel rounded-[32px] p-6 sm:p-8"
+          >
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-5">
+              <div>
+                <div className="text-[11px] uppercase tracking-[0.3em] text-white/42">Interactive deposit flow</div>
+                <h3 className="mt-3 font-display text-3xl text-white">Earn flow</h3>
               </div>
-            ) : null}
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/6 px-3 py-2 text-[11px] uppercase tracking-[0.28em] text-[#ffd4aa]">
+                <span className="h-2 w-2 rounded-full bg-[#ffb476]" />
+                {step === "success" ? "Portfolio live" : step === "depositing" ? "Transaction running" : "Ready"}
+              </div>
+            </div>
 
-            {statusMessage ? (
-              <div className="mb-5 border border-[var(--line)] bg-[rgba(255,252,248,0.5)] px-4 py-3 text-sm text-cocoa">
-                {statusMessage}
-              </div>
-            ) : null}
+            {error ? <InlineMessage tone="warn">{error}</InlineMessage> : null}
+            {statusMessage ? <InlineMessage tone="neutral">{statusMessage}</InlineMessage> : null}
 
             {(step === "idle" || step === "analyzing") && (
-              <div className="space-y-6 animate-float-up">
-                <div className="border-b border-[var(--line)] pb-4">
-                  <p className="mono text-[11px] uppercase tracking-[0.25em] text-muted">Step 1</p>
-                  <h3 className="display mt-3 text-3xl">你想存多久？</h3>
-                  <p className="mt-3 text-sm leading-7 text-muted">选一个就好，不需要下一步按钮。</p>
-                </div>
-
+              <div className="space-y-6">
+                <FlowHeader stepLabel="Step 01" title="How long do you want to save?" body="Choose a time horizon first. The product handles the strategy details for you." />
                 <div className="grid gap-4 md:grid-cols-3">
-                  {strategyCards.map((card) => {
+                  {strategyCards.map((card, index) => {
                     const active = selectedDuration === card.duration;
 
                     return (
-                      <button
+                      <motion.button
                         key={card.duration}
                         type="button"
                         onClick={() => chooseDuration(card.duration)}
-                        className={`group border p-5 text-left transition duration-300 ease-in-out ${
+                        whileHover={{ y: -8, scale: 1.01 }}
+                        whileTap={{ scale: 0.985 }}
+                        transition={{ duration: 0.22 }}
+                        className={`group rounded-[24px] border p-5 text-left transition ${
                           active
-                            ? "border-caramel bg-white/60"
-                            : "border-[var(--line)] bg-white/40 hover:-translate-y-1 hover:border-caramel/45 hover:bg-caramel/5"
+                            ? "border-[#ffb476]/60 bg-[#ffb476]/14 shadow-[0_20px_50px_rgba(255,180,118,0.18)]"
+                            : "border-white/10 bg-white/[0.04] hover:border-white/20 hover:bg-white/[0.08]"
                         }`}
                       >
-                        <div className="mono text-[11px] uppercase tracking-[0.24em] text-muted">{card.subtitle}</div>
-                        <div className="display mt-6 text-4xl">{card.label}</div>
-                        <div className="mt-6 flex items-center justify-between">
-                          <span className="text-sm text-muted">
-                            {card.protocolHint ? `${card.protocolHint} 优先` : "支持链中最高 APY"}
-                          </span>
-                          <span className="h-px w-12 bg-caramel/55 transition group-hover:w-16" />
+                        <div className="text-[11px] uppercase tracking-[0.28em] text-white/45">{card.subtitle}</div>
+                        <div className="mt-6 font-display text-5xl text-white">{card.label}</div>
+                        <div className="mt-8 flex items-center justify-between text-sm text-white/58">
+                          <span>{card.protocolHint ? `${card.protocolHint} preferred` : "Best available APY"}</span>
+                          <ArrowUpRight className="h-4 w-4 transition group-hover:-translate-y-1 group-hover:translate-x-1" />
                         </div>
-                      </button>
+                        <div className="mt-4 h-px origin-left bg-gradient-to-r from-[#ffb476] via-white/60 to-transparent" data-progress-line />
+                      </motion.button>
                     );
                   })}
                 </div>
 
-                {step === "analyzing" && (
-                  <div className="border border-[var(--line)] bg-white/50 p-5">
-                    <p className="mono text-[11px] uppercase tracking-[0.24em] text-caramel">Step 2</p>
-                    <h4 className="display mt-3 text-2xl">我们帮你选最优方案</h4>
-                    <div className="mt-5 space-y-3">
-                      {analysisMessages.map((message) => (
-                        <div key={message} className="flex items-center gap-3">
-                          <span className="h-px w-12 animate-pulse-line bg-caramel/50" />
-                          <span className="text-sm text-muted">{message}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <p className="mt-5 text-sm text-muted">{isLoading ? "正在连接 LI.FI Earn 数据..." : "分析完成。"}</p>
-                  </div>
-                )}
+                <AnimatePresence>
+                  {step === "analyzing" && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 18 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -12 }}
+                      transition={{ duration: 0.45 }}
+                      className="rounded-[24px] border border-white/10 bg-white/[0.04] p-5"
+                    >
+                      <FlowHeader stepLabel="Step 02" title="Matching the best strategy" body="The system is comparing yield options for your chosen time horizon." />
+                      <div className="mt-5 space-y-3">
+                        {analysisMessages.map((message, index) => (
+                          <motion.div
+                            key={message}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.55, delay: index * 0.12 }}
+                            className="flex items-center gap-3"
+                          >
+                            <span className="h-px w-12 animate-pulse-line bg-[#ffb476]/80" />
+                            <span className="text-sm text-white/65">{message}</span>
+                          </motion.div>
+                        ))}
+                      </div>
+                      <p className="mt-5 text-sm text-white/46">{isLoading ? "Connecting to LI.FI Earn data..." : "Strategy ready."}</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             )}
 
             {step === "amount" && strategy && (
-              <div className="space-y-6 animate-float-up">
-                <div className="flex items-start justify-between gap-4 border-b border-[var(--line)] pb-4">
-                  <div>
-                    <p className="mono text-[11px] uppercase tracking-[0.25em] text-muted">Step 2</p>
-                    <h3 className="display mt-3 text-3xl">我们已经替你挑好了</h3>
-                    <p className="mt-3 text-sm leading-7 text-muted">你只需要看一眼方案，再输入想存的金额。</p>
-                  </div>
-                  <span className="mono rounded-full border border-[var(--line)] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-caramel">
-                    {strategy.source === "live" ? "Live data" : "Fallback"}
-                  </span>
-                </div>
+              <div className="space-y-6">
+                <FlowHeader
+                  stepLabel="Step 02"
+                  title="Your strategy is ready"
+                  body="Review the strategy, enter an amount, and confirm the deposit."
+                  badge={strategy.source === "live" ? "Live data" : "Fallback"}
+                />
 
                 <div className="grid gap-4 md:grid-cols-2">
-                  <DataTile label="为你匹配的策略" value={strategy.vaultName} hint={`${strategy.protocolName} / ${strategy.chainName}`} />
-                  <DataTile label="预期年化" value={`${strategy.apy.toFixed(2)}%`} hint={strategy.pointsLabel ?? `风险等级：${strategy.riskLabel}`} />
+                  <DataTile label="Recommended strategy" value={strategy.vaultName} hint={`${strategy.protocolName} / ${strategy.chainName}`} />
+                  <DataTile label="Expected APY" value={`${strategy.apy.toFixed(2)}%`} hint={strategy.pointsLabel ?? `Risk level: ${strategy.riskLabel}`} />
                   <DataTile
-                    label={`存 ${strategy.duration} 天可赚`}
-                    value={`约 $${strategy.estimatedReturnMin.toFixed(2)} - $${strategy.estimatedReturnMax.toFixed(2)}`}
-                    hint="按实时 APY 粗略估算"
+                    label={`Estimated return in ${strategy.duration} days`}
+                    value={`$${strategy.estimatedReturnMin.toFixed(2)} - $${strategy.estimatedReturnMax.toFixed(2)}`}
+                    hint="Estimated from the live APY"
                   />
-                  <DataTile label="存入资产" value={strategy.inputToken} hint={`Chain ${strategy.chainId} / ${strategy.vaultAddress.slice(0, 8)}...`} />
+                  <DataTile label="Deposit asset" value={strategy.inputToken} hint={`Chain ${strategy.chainId} / ${strategy.vaultAddress.slice(0, 8)}...`} />
                 </div>
 
-                <label className="block space-y-3 border-t border-[var(--line)] pt-2">
-                  <span className="mono text-[11px] uppercase tracking-[0.24em] text-muted">你想存多少？</span>
+                <label className="block rounded-[28px] border border-white/10 bg-black/14 p-5">
+                  <div className="text-[11px] uppercase tracking-[0.3em] text-white/42">Deposit amount</div>
                   <input
                     value={amount}
                     onChange={(event) => setAmount(event.target.value.replace(/[^\d.]/g, ""))}
                     inputMode="decimal"
                     placeholder="500"
-                    className="field display text-4xl"
+                    className="mt-4 w-full border-0 bg-transparent font-display text-6xl tracking-[-0.04em] text-white outline-none placeholder:text-white/18"
                   />
+                  <div className="mt-4 text-sm text-white/46">The quote updates automatically when the amount changes.</div>
                 </label>
 
-                <div className="border border-[var(--line)] bg-white/45 p-5">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="mono text-[11px] uppercase tracking-[0.25em] text-muted">Deposit Slip</p>
-                      <h4 className="display mt-3 text-2xl">这次存款会这样发生</h4>
-                    </div>
-                    <span className="mono text-[11px] uppercase tracking-[0.22em] text-muted">
-                      {quoteLoading ? "Loading" : quote ? "Ready" : "Pending"}
-                    </span>
-                  </div>
+                <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-5">
+                  <FlowHeader stepLabel="Step 03" title="Review before deposit" body="See the route details before you confirm the transaction." />
                   <div className="mt-5 grid gap-4 md:grid-cols-2">
                     <DataTile
-                      label="你将存入"
+                      label="You deposit"
                       value={`${numericAmount || 0} ${strategy.inputToken}`}
-                      hint={isConnected ? `${address?.slice(0, 6)}...${address?.slice(-4)}` : "先连接钱包以生成实时报价"}
+                      hint={isConnected ? `${address?.slice(0, 6)}...${address?.slice(-4)}` : "Connect a wallet to generate a live quote"}
                     />
                     <DataTile
-                      label="到期预计价值"
-                      value={
-                        projections
-                          ? `$${projections.projectedMin} - $${projections.projectedMax}`
-                          : "-"
-                      }
-                      hint="基于当前 APY 的估算，实际收益以链上为准"
+                      label="Estimated value at maturity"
+                      value={projections ? `$${projections.projectedMin} - $${projections.projectedMax}` : "-"}
+                      hint="Estimated from the current APY. Actual yield depends on the strategy."
                     />
-                  </div>
-                  <div className="mt-5 grid gap-4 md:grid-cols-2">
                     <DataTile
-                      label="预计 Gas"
+                      label="Estimated gas"
                       value={
                         quote?.estimate.gasCosts?.[0]?.amountUSD
                           ? `$${Number(quote.estimate.gasCosts[0].amountUSD).toFixed(4)}`
                           : "-"
                       }
-                      hint="只做展示，实际 gas 以钱包签名时为准"
+                      hint={quoteLoading ? "Loading quote" : "Final gas depends on the wallet confirmation"}
                     />
-                    <DataTile
-                      label="授权对象"
-                      value={quote?.estimate.approvalAddress ? `${quote.estimate.approvalAddress.slice(0, 6)}...${quote.estimate.approvalAddress.slice(-4)}` : "-"}
-                      hint="若额度不足，会先请求一次授权"
-                    />
+                    {/*<DataTile*/}
+                    {/*  label="Estimated receive"*/}
+                    {/*  value={quotedReceive ? `${quotedReceive.best}` : "-"}*/}
+                    {/*  hint={quotedReceive ? `Minimum ${quotedReceive.minimum}` : "Waiting for live quote"}*/}
+                    {/*/>*/}
                   </div>
-                  {quoteError ? <p className="mt-5 text-sm text-cocoa">{quoteError}</p> : null}
+                  {quoteError ? <p className="mt-5 text-sm text-[#ffb476]">{quoteError}</p> : null}
                   <button
                     type="button"
                     onClick={beginDeposit}
                     disabled={!numericAmount || !isConnected || !quote || quoteLoading}
-                    className="button-primary mt-6 w-full px-6 py-4 mono text-sm uppercase tracking-[0.18em] disabled:cursor-not-allowed disabled:opacity-50"
+                    className="lux-button lux-button-primary mt-6 w-full justify-center disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    {isConnected ? "确认并开始存款" : "先连接钱包"}
+                    {isConnected ? "Confirm and deposit" : "Connect wallet first"}
                   </button>
                 </div>
               </div>
             )}
 
             {step === "depositing" && strategy && (
-              <div className="space-y-6 animate-float-up">
-                <div className="border-b border-[var(--line)] pb-4">
-                  <p className="mono text-[11px] uppercase tracking-[0.25em] text-muted">Step 3</p>
-                  <h3 className="display mt-3 text-3xl">你的资金正在开始工作</h3>
-                </div>
-
-                <div className="space-y-4 border border-[var(--line)] bg-white/45 p-5">
+              <div className="space-y-6">
+                <FlowHeader stepLabel="Step 04" title="Your deposit is in progress" body="Track approval and deposit in real time." />
+                <div className="space-y-4 rounded-[28px] border border-white/10 bg-white/[0.04] p-5">
                   <ProgressRow
-                    title="第一步：授权资金"
+                    title="Step 1: Approve funds"
                     state={approvalState === "complete" ? "complete" : approvalState === "active" ? "active" : "pending"}
                     hash={approvalHash}
                     scanUrl={approvalHash && strategy ? getExplorerUrl(strategy.chainId, approvalHash) : undefined}
                   />
                   <ProgressRow
-                    title="第二步：存入收益池"
+                    title="Step 2: Deposit into the vault"
                     state={depositState === "complete" ? "complete" : depositState === "active" ? "active" : "pending"}
                     hash={depositHash}
                     scanUrl={depositHash && strategy ? getExplorerUrl(strategy.chainId, depositHash) : undefined}
@@ -625,31 +923,29 @@ export function EarnExperience() {
             )}
 
             {step === "success" && strategy && position && depositedAt && (
-              <div className="space-y-6 animate-float-up">
-                <div className="border-b border-[var(--line)] pb-4">
-                  <p className="mono text-[11px] uppercase tracking-[0.25em] text-caramel">Step 4</p>
-                  <h3 className="display mt-3 text-4xl">存款成功</h3>
-                  <p className="mt-3 text-base text-muted">
-                    你的 {numericAmount} {strategy.inputToken} 已经开始工作。
-                  </p>
-                </div>
+              <div className="space-y-6">
+                <FlowHeader
+                  stepLabel="Step 04"
+                  title="Your money is now working"
+                  body={`Your ${numericAmount} ${strategy.inputToken} is now earning. Track growth, verify the position, and share it.`}
+                />
 
                 <div className="grid gap-4 md:grid-cols-3">
-                  <DataTile label="今天已赚" value={`$${position.earned.toFixed(6)}`} hint="每 3 秒自动刷新" large />
-                  <DataTile label="年化收益" value={`$${position.yearlyYield.toFixed(2)} / 年`} hint={`${strategy.apy.toFixed(2)}% APY`} />
-                  <DataTile label="存入时间" value={new Date(depositedAt).toLocaleString("zh-CN")} hint="链上开始计息" />
+                  <DataTile label="Earned today" value={`$${position.earned.toFixed(6)}`} hint="Refreshes every 3 seconds" large />
+                  <DataTile label="Yearly yield" value={`$${position.yearlyYield.toFixed(2)} / year`} hint={`${strategy.apy.toFixed(2)}% APY`} />
+                  <DataTile label="Deposit time" value={new Date(depositedAt).toLocaleString("en-US")} hint="Yield starts after the on-chain confirmation" />
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <DataTile
-                    label="授权交易"
-                    value={approvalHash ? `${approvalHash.slice(0, 10)}...` : "已跳过"}
-                    hint={approvalHash && strategy ? "可点击下方 Scan 查看" : "若额度已足够，授权步骤会被跳过"}
+                    label="Approval transaction"
+                    value={approvalHash ? `${approvalHash.slice(0, 10)}...` : "Skipped"}
+                    hint={approvalHash ? "Open the scan link below" : "Approval can be skipped if allowance is already sufficient"}
                   />
                   <DataTile
-                    label="存款交易"
+                    label="Deposit transaction"
                     value={depositHash ? `${depositHash.slice(0, 10)}...` : "-"}
-                    hint={depositHash && strategy ? "已上链，可用于验证" : "等待交易哈希"}
+                    hint={depositHash ? "Confirmed on-chain and ready to verify" : "Waiting for transaction hash"}
                   />
                 </div>
 
@@ -659,9 +955,9 @@ export function EarnExperience() {
                       href={getExplorerUrl(strategy.chainId, approvalHash)}
                       target="_blank"
                       rel="noreferrer"
-                      className="button-secondary px-5 py-3 mono text-sm uppercase tracking-[0.18em]"
+                      className="lux-button lux-button-secondary"
                     >
-                      查看授权 Scan
+                      View approval scan
                     </a>
                   ) : null}
                   {depositHash && strategy ? (
@@ -669,110 +965,527 @@ export function EarnExperience() {
                       href={getExplorerUrl(strategy.chainId, depositHash)}
                       target="_blank"
                       rel="noreferrer"
-                      className="button-secondary px-5 py-3 mono text-sm uppercase tracking-[0.18em]"
+                      className="lux-button lux-button-secondary"
                     >
-                      查看存款 Scan
+                      View deposit scan
                     </a>
                   ) : null}
-                  <button
-                    type="button"
-                    onClick={() => refreshPortfolio()}
-                    className="button-secondary px-5 py-3 mono text-sm uppercase tracking-[0.18em]"
-                  >
-                    {portfolioLoading ? "读取中..." : "验证 Portfolio"}
+                  <button type="button" onClick={() => refreshPortfolio()} className="lux-button lux-button-secondary">
+                    {portfolioLoading ? "Loading..." : "Verify portfolio"}
                   </button>
                 </div>
-
-                <div className="border border-[var(--line)] bg-white/45 p-5">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="mono text-[11px] uppercase tracking-[0.25em] text-muted">Verification</p>
-                      <h4 className="display mt-3 text-2xl">LI.FI Earn Portfolio 验证</h4>
-                    </div>
-                    <span className="mono text-[11px] uppercase tracking-[0.22em] text-muted">
-                      {portfolioPositions.length} positions
-                    </span>
-                  </div>
-                  <p className="mt-4 text-sm text-muted">
-                    {portfolioMessage ?? "点击按钮后，会请求 LI.FI Earn positions 接口读取你的持仓。"}
-                  </p>
-                  <div className="mt-5 space-y-3">
-                    {portfolioPositions.length ? (
-                      portfolioPositions.map((item) => (
-                        <div key={`${item.chainId}-${item.vaultAddress}`} className="border border-[var(--line)] bg-white/40 p-4">
-                          <div className="flex items-center justify-between gap-4">
-                            <div>
-                              <div className="display text-2xl">{item.vaultName}</div>
-                              <div className="mt-2 text-sm text-muted">{item.vaultAddress}</div>
-                            </div>
-                            <div className="text-right">
-                              <div className="display text-2xl">{item.amountUsd}</div>
-                              <div className="mt-2 text-sm text-muted">{item.symbol}</div>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="border border-dashed border-[var(--line)] p-4 text-sm text-muted">
-                        暂未返回持仓。新交易有时需要一点索引时间。
-                      </div>
-                    )}
-                  </div>
-                  {address ? (
-                    <pre className="mt-5 overflow-x-auto border border-[var(--line)] bg-[rgba(255,252,248,0.55)] p-4 text-xs text-cocoa">
-{`curl -X GET 'https://earn.li.fi/v1/earn/portfolio/${address}/positions'`}
-                    </pre>
-                  ) : null}
-                </div>
-
-                <div
-                  ref={shareCardRef}
-                  className="relative overflow-hidden border border-[var(--line)] bg-white/60 p-6"
-                >
-                  <div className="absolute inset-x-0 top-0 h-px bg-[var(--line)]" />
-                  <p className="mono text-[11px] uppercase tracking-[0.25em] text-caramel">Share Card</p>
-                  <h4 className="display mt-3 text-3xl">我把 {numericAmount} USDC 存进了收益池</h4>
-                  <p className="mt-4 text-base leading-8 text-muted">
-                    年化 {strategy.apy.toFixed(2)}%，每天都在赚钱。你也来试试。
-                  </p>
-                  <div className="mt-6 flex items-center justify-between border-t border-[var(--line)] pt-4">
-                    <span className="mono text-xs uppercase tracking-[0.22em] text-muted">Warm Yield</span>
-                    <span className="mono text-xs uppercase tracking-[0.22em] text-caramel">LIFI Earn</span>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-3">
-                  <button type="button" onClick={shareCard} className="button-secondary px-5 py-3 mono text-sm uppercase tracking-[0.18em]">
-                    邀请朋友一起存
-                  </button>
-                  <a
-                    href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-                      `${createShareText(numericAmount, strategy)} 你也来试试 -> ${typeof window !== "undefined" ? window.location.href : ""}`
-                    )}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="button-secondary px-5 py-3 mono text-sm uppercase tracking-[0.18em]"
-                  >
-                    分享到 X
-                  </a>
-                </div>
-
-                {shareMessage ? <p className="text-sm text-muted">{shareMessage}</p> : null}
               </div>
             )}
+          </motion.div>
+        </section>
+
+        <section
+          id="proof"
+          data-story-section
+          className="grid gap-8 py-16 lg:grid-cols-[1fr_1fr] lg:py-24"
+        >
+          <div className="space-y-6">
+            <SectionEyebrow>Proof</SectionEyebrow>
+            <RevealText
+              as="h2"
+              dataReveal
+              className="max-w-xl font-display text-[clamp(2.8rem,5vw,5rem)] leading-[0.95] tracking-[-0.04em]"
+              text="After deposit, users should be able to verify that everything worked."
+            />
+            <p className="max-w-lg text-base leading-8 text-white/62">
+              The success state should not stop at a confirmation message. It should show transaction proof, portfolio visibility, and a shareable result.
+            </p>
+          </div>
+
+          <div className="grid gap-5">
+            <div className="glass-panel rounded-[28px] p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="text-[11px] uppercase tracking-[0.3em] text-white/42">Verification</div>
+                  <h3 className="mt-3 font-display text-3xl text-white">LI.FI Earn Portfolio</h3>
+                </div>
+                <div className="rounded-full border border-white/10 bg-white/6 px-3 py-2 text-[11px] uppercase tracking-[0.28em] text-[#ffd4aa]">
+                  {portfolioPositions.length} positions
+                </div>
+              </div>
+              <p className="mt-4 text-sm leading-7 text-white/58">
+                {portfolioMessage ?? "Load the LI.FI Earn portfolio here after a successful deposit."}
+              </p>
+              <div className="mt-5 space-y-3">
+                {portfolioPositions.length ? (
+                  portfolioPositions.map((item) => (
+                    <div key={`${item.chainId}-${item.vaultAddress}`} className="rounded-[22px] border border-white/10 bg-black/14 p-4">
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <div className="font-display text-2xl text-white">{item.vaultName}</div>
+                          <div className="mt-2 text-sm text-white/48">{item.vaultAddress}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-display text-2xl text-white">{item.amountUsd}</div>
+                          <div className="mt-2 text-sm text-white/48">{item.symbol}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="rounded-[22px] border border-dashed border-white/12 p-4 text-sm text-white/48">
+                    No position returned yet. New deposits sometimes need a little time to index.
+                  </div>
+                )}
+              </div>
+              {address ? (
+                <pre className="mt-5 overflow-x-auto rounded-[22px] border border-white/10 bg-black/18 p-4 text-xs text-white/62">
+{`curl -X GET 'https://earn.li.fi/v1/earn/portfolio/${address}/positions'`}
+                </pre>
+              ) : null}
+            </div>
+
+            <InviteShareCard ref={shareCardRef} strategy={strategy} amount={numericAmount} className="glass-panel rounded-[28px] p-6">
+              <div className="mt-8 flex flex-wrap gap-3">
+                <button type="button" onClick={shareCard} className="lux-button lux-button-secondary">
+                  Generate share card
+                </button>
+                <a
+                  href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                    `${strategy ? createShareText(numericAmount, strategy) : "I am trying EarnGift on LI.FI Earn"} Try it here -> ${currentUrl}`
+                  )}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="lux-button lux-button-secondary"
+                >
+                  Share on X
+                </a>
+              </div>
+              {shareMessage ? <p className="mt-4 text-sm text-white/52">{shareMessage}</p> : null}
+            </InviteShareCard>
           </div>
         </section>
-          <FAQSection/>
+
+        <section id="faq" data-story-section className="py-16 lg:py-24">
+          <div className="grid gap-8 lg:grid-cols-[0.78fr_1.22fr]">
+            <div className="space-y-6">
+              <SectionEyebrow>FAQ</SectionEyebrow>
+              <RevealText
+                as="h2"
+                dataReveal
+                className="max-w-xl font-display text-[clamp(2.8rem,5vw,5rem)] leading-[0.95] tracking-[-0.04em]"
+                text="Clear answers for first-time users."
+              />
+            </div>
+
+            <div className="glass-panel rounded-[32px] p-4 sm:p-6">
+              {faqItems.map((item, index) => {
+                const isOpen = openFaq === index;
+                return (
+                  <div key={item.question} className="border-b border-white/10 last:border-b-0">
+                    <button
+                      type="button"
+                      onClick={() => setOpenFaq(isOpen ? null : index)}
+                      className="flex w-full items-center justify-between gap-6 py-5 text-left"
+                    >
+                      <span className="font-display text-2xl text-white">{item.question}</span>
+                      <motion.span animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.32 }}>
+                        <ChevronDown className="h-5 w-5 text-[#ffd4aa]" />
+                      </motion.span>
+                    </button>
+                    <AnimatePresence initial={false}>
+                      {isOpen ? (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                          className="overflow-hidden"
+                        >
+                          <p className="pb-5 pr-10 text-sm leading-7 text-white/62">{item.answer}</p>
+                        </motion.div>
+                      ) : null}
+                    </AnimatePresence>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
       </main>
+      <AnimatePresence>
+        {showInviteCard ? (
+          <InviteCardModal
+            strategy={strategy}
+            amount={numericAmount}
+            onClose={() => setShowInviteCard(false)}
+          />
+        ) : null}
+      </AnimatePresence>
     </div>
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+function AnimatedBackdrop() {
   return (
-    <div className="border border-[var(--line)] bg-[rgba(255,252,248,0.4)] p-4">
-      <div className="mono text-[11px] uppercase tracking-[0.24em] text-muted">{label}</div>
-      <div className="display mt-4 text-2xl">{value}</div>
+    <div className="pointer-events-none fixed inset-0 z-0">
+      <Canvas camera={{ position: [0, 0, 8], fov: 42 }} dpr={[1, 1.5]}>
+        <ambientLight intensity={0.55} />
+        <directionalLight position={[3, 2, 5]} intensity={1.3} color="#ffd7ad" />
+        <pointLight position={[-4, -3, 2]} intensity={1.1} color="#9ad7ff" />
+        <Sparkles count={70} scale={[12, 16, 8]} size={2} speed={0.18} color="#ffd4aa" opacity={0.6} />
+        <BackdropMeshes />
+      </Canvas>
+    </div>
+  );
+}
+
+function BackdropMeshes() {
+  const groupRef = useRef<THREE.Group>(null);
+
+  useFrame((state, delta) => {
+    if (!groupRef.current) {
+      return;
+    }
+
+    groupRef.current.rotation.y += delta * 0.08;
+    groupRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.14) * 0.12;
+  });
+
+  return (
+    <group ref={groupRef}>
+      <Float speed={1.4} rotationIntensity={0.65} floatIntensity={0.7}>
+        <mesh position={[-2.5, 1.8, -1]}>
+          <icosahedronGeometry args={[1.3, 18]} />
+          <MeshDistortMaterial color="#ff9966" transparent opacity={0.46} distort={0.48} speed={1.8} roughness={0.18} metalness={0.25} />
+        </mesh>
+      </Float>
+      <Float speed={1.2} rotationIntensity={1} floatIntensity={1.1}>
+        <mesh position={[2.4, -0.6, -0.5]}>
+          <torusKnotGeometry args={[0.95, 0.28, 180, 24]} />
+          <meshStandardMaterial color="#8ccfff" wireframe transparent opacity={0.32} />
+        </mesh>
+      </Float>
+      <Float speed={1.7} rotationIntensity={0.8} floatIntensity={0.9}>
+        <mesh position={[0.8, 2.4, -2.2]}>
+          <sphereGeometry args={[0.72, 48, 48]} />
+          <meshStandardMaterial color="#fff0d7" transparent opacity={0.16} metalness={0.8} roughness={0.18} />
+        </mesh>
+      </Float>
+    </group>
+  );
+}
+
+function SectionEyebrow({ children }: { children: string }) {
+  return (
+    <div className="inline-flex items-center gap-3 rounded-full border border-white/12 bg-white/6 px-4 py-2 backdrop-blur-md">
+      <span className="h-2 w-2 rounded-full bg-[#ffb476]" />
+      <span className="text-[11px] uppercase tracking-[0.32em] text-white/58">{children}</span>
+    </div>
+  );
+}
+
+function RevealText({
+  text,
+  className,
+  as = "h2"
+}: {
+  text: string;
+  className?: string;
+  as?: "h1" | "h2" | "p";
+  dataReveal?: boolean;
+}) {
+  const Tag = as;
+  const hasSpaces = /\s/.test(text);
+  const segments = hasSpaces ? text.split(/(\s+)/) : Array.from(text);
+
+  return (
+    <Tag className={className} data-reveal-chunk>
+      {segments.map((segment, index) => (
+        /^\s+$/.test(segment) ? (
+          <span key={`space-${index}`} className="whitespace-pre-wrap">
+            {segment}
+          </span>
+        ) : (
+          <motion.span
+            key={`${segment}-${index}`}
+            initial={{ opacity: 0, y: 30, filter: "blur(8px)" }}
+            whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            viewport={{ once: true, margin: "-120px" }}
+            transition={{ duration: 0.8, delay: index * 0.04, ease: [0.22, 1, 0.36, 1] }}
+            className={hasSpaces ? "inline-block whitespace-nowrap" : "inline-block"}
+          >
+            {segment}
+          </motion.span>
+        )
+      ))}
+    </Tag>
+  );
+}
+
+function HeroVaultCard({
+  selectedDuration,
+  strategy,
+  quotedReceive,
+  amount,
+  onOpenInviteCard
+}: {
+  selectedDuration: DurationOption | null;
+  strategy: StrategyResult | null;
+  quotedReceive: { best: string; minimum: string } | null;
+  amount: number;
+  onOpenInviteCard: () => void;
+}) {
+  return (
+    <div className="relative mx-auto w-full max-w-[620px]">
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 24, ease: "linear", repeat: Number.POSITIVE_INFINITY }}
+        className="absolute left-1/2 top-1/2 h-[480px] w-[480px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#ffb476]/20"
+      />
+      <motion.div
+        animate={{ rotate: -360 }}
+        transition={{ duration: 34, ease: "linear", repeat: Number.POSITIVE_INFINITY }}
+        className="absolute left-1/2 top-1/2 h-[360px] w-[360px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10"
+      />
+      <div className="hero-card relative overflow-hidden rounded-[36px] border border-white/12 bg-white/[0.06] p-6 shadow-[0_30px_90px_rgba(0,0,0,0.28)] backdrop-blur-[24px] sm:p-8">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="text-[11px] uppercase tracking-[0.3em] text-white/40">Vault preview</div>
+            <div className="mt-3 font-display text-3xl text-white">Simple yield preview</div>
+          </div>
+          <div className="rounded-full border border-white/12 bg-black/10 px-3 py-2 text-[11px] uppercase tracking-[0.28em] text-[#ffd4aa]">
+            {selectedDuration ? `${selectedDuration}d selected` : "Choose a duration"}
+          </div>
+        </div>
+
+        <div className="mt-8 grid gap-4 sm:grid-cols-2">
+          <PreviewTile label="Route state" value={strategy ? strategy.protocolName : "Discover"} hint={strategy ? strategy.chainName : "Waiting for a duration"} />
+          <PreviewTile
+            label="Projected receive"
+            value={quotedReceive ? quotedReceive.best : "--"}
+            hint={quotedReceive ? `minimum ${quotedReceive.minimum}` : "Share anytime"}
+            hintAction={{
+              label: "Open card",
+              onClick: onOpenInviteCard
+            }}
+          />
+        </div>
+
+        <div className="relative mt-8 overflow-hidden rounded-[28px] border border-white/10 bg-black/20 p-6">
+          <motion.div
+            animate={{ x: ["-10%", "105%"] }}
+            transition={{ duration: 3.8, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
+            className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-white/18 to-transparent blur-2xl"
+          />
+          <div className="text-[11px] uppercase tracking-[0.3em] text-white/40">Live readout</div>
+          <div className="mt-4 font-display text-[clamp(3.4rem,7vw,5.6rem)] leading-none tracking-[-0.05em] text-white">
+            ${amount || 500}
+          </div>
+          <div className="mt-4 flex items-center justify-between text-sm text-white/54">
+            <span>{strategy ? `${strategy.apy.toFixed(2)}% APY` : "Waiting for live strategy"}</span>
+            <span>{strategy ? strategy.vaultName : "Yield vault"}</span>
+          </div>
+        </div>
+
+        <div className="mt-8 grid gap-3 sm:grid-cols-3">
+          <MiniStat label="Chains" value="60+" />
+          <MiniStat label="Protocols" value="20+" />
+          <MiniStat label="Deposit speed" value="30 sec" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MetricPanel({ label, value, hint }: { label: string; value: string; hint: string }) {
+  return (
+    <motion.div
+      whileHover={{ y: -8 }}
+      transition={{ duration: 0.22 }}
+      className="glass-panel rounded-[26px] p-5"
+    >
+      <div className="text-[11px] uppercase tracking-[0.28em] text-white/42">{label}</div>
+      <div className="mt-6 font-display text-3xl leading-tight text-white">{value}</div>
+      <div className="mt-4 text-sm leading-6 text-white/52">{hint}</div>
+    </motion.div>
+  );
+}
+
+function MiniStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[22px] border border-white/10 bg-white/[0.04] px-4 py-4">
+      <div className="text-[10px] uppercase tracking-[0.28em] text-white/38">{label}</div>
+      <div className="mt-3 font-display text-2xl text-white">{value}</div>
+    </div>
+  );
+}
+
+function PreviewTile({
+  label,
+  value,
+  hint,
+  hintAction
+}: {
+  label: string;
+  value: string;
+  hint: string;
+  hintAction?: {
+    label: string;
+    onClick: () => void;
+  };
+}) {
+  return (
+    <div className="rounded-[24px] border border-white/10 bg-black/12 p-5">
+      <div className="text-[10px] uppercase tracking-[0.28em] text-white/38">{label}</div>
+      <div className="mt-4 font-display text-3xl text-white">{value}</div>
+      <div className="mt-3 flex items-center justify-between gap-4 text-sm text-white/50">
+        <span>{hint}</span>
+        {hintAction ? (
+          <button
+            type="button"
+            onClick={hintAction.onClick}
+            className="shrink-0 text-[11px] uppercase tracking-[0.24em] text-[#ffd4aa] transition hover:text-white"
+          >
+            {hintAction.label}
+          </button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+const InviteShareCard = forwardRef<HTMLDivElement, {
+  strategy: StrategyResult | null;
+  amount: number;
+  className?: string;
+  children?: React.ReactNode;
+  cardTitle?: string;
+  cardBody?: string;
+}>(function InviteShareCard({
+  strategy,
+  amount,
+  className,
+  children,
+  cardTitle,
+  cardBody
+}, ref) {
+  return (
+    <div ref={ref} className={className}>
+      <div className="text-[11px] uppercase tracking-[0.3em] text-[#ffd4aa]/82">Share Card</div>
+      <h3 className="mt-4 max-w-lg font-display text-4xl leading-tight text-white">
+        {cardTitle ?? (strategy ? `I deposited ${amount || 0} ${strategy.inputToken} into a yield vault` : "Turn saving into something worth sharing")}
+      </h3>
+      <p className="mt-4 max-w-xl text-base leading-8 text-white/62">
+        {cardBody ?? (strategy
+          ? `${strategy.apy.toFixed(2)}% APY, with earnings growing every day.`
+          : "Generate a shareable card after a successful deposit and invite friends to try it.")}
+      </p>
+      {children}
+    </div>
+  );
+});
+
+function InviteCardModal({
+  strategy,
+  amount,
+  onClose
+}: {
+  strategy: StrategyResult | null;
+  amount: number;
+  onClose: () => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#02060d]/72 px-4 backdrop-blur-md"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 30, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 20, scale: 0.98 }}
+        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+        className="w-full max-w-2xl"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <InviteShareCard
+          strategy={strategy}
+          amount={amount}
+          className="glass-panel rounded-[32px] p-6 sm:p-8"
+          cardTitle="Invite a friend to start earning with EarnGift"
+          cardBody="Put idle USDC to work in one clear flow. Pick a duration, confirm the deposit, and watch earnings grow in real time."
+        >
+          <div className="mt-8 flex flex-wrap gap-3">
+            <button type="button" onClick={onClose} className="lux-button lux-button-secondary">
+              Close
+            </button>
+          </div>
+        </InviteShareCard>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function FlowHeader({
+  stepLabel,
+  title,
+  body,
+  badge
+}: {
+  stepLabel: string;
+  title: string;
+  body: string;
+  badge?: string;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <div>
+        <div className="text-[11px] uppercase tracking-[0.3em] text-white/42">{stepLabel}</div>
+        <h4 className="mt-3 font-display text-3xl text-white">{title}</h4>
+        <p className="mt-3 max-w-2xl text-sm leading-7 text-white/58">{body}</p>
+      </div>
+      {badge ? (
+        <div className="rounded-full border border-white/10 bg-white/6 px-3 py-2 text-[11px] uppercase tracking-[0.28em] text-[#ffd4aa]">
+          {badge}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function InlineMessage({
+  tone,
+  children
+}: {
+  tone: "warn" | "neutral";
+  children: string;
+}) {
+  return (
+    <div
+      className={`mb-5 rounded-[20px] border px-4 py-3 text-sm ${
+        tone === "warn"
+          ? "border-[#ffb476]/30 bg-[#ffb476]/10 text-[#ffd7b2]"
+          : "border-white/10 bg-white/[0.05] text-white/70"
+      }`}
+    >
+      {children}
+    </div>
+  );
+}
+
+function FlowBullet({
+  number,
+  title,
+  copy
+}: {
+  number: string;
+  title: string;
+  copy: string;
+}) {
+  return (
+    <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-5">
+      <div className="text-[11px] uppercase tracking-[0.28em] text-[#ffd4aa]/82">{number}</div>
+      <div className="mt-4 font-display text-2xl text-white">{title}</div>
+      <p className="mt-3 text-sm leading-7 text-white/56">{copy}</p>
     </div>
   );
 }
@@ -789,10 +1502,12 @@ function DataTile({
   large?: boolean;
 }) {
   return (
-    <div className="border border-[var(--line)] bg-[rgba(255,252,248,0.35)] p-4">
-      <div className="mono text-[11px] uppercase tracking-[0.24em] text-muted">{label}</div>
-      <div className={`display mt-4 break-words ${large ? "text-4xl" : "text-2xl"}`}>{value}</div>
-      <div className="mt-4 text-sm text-muted">{hint}</div>
+    <div className="rounded-[24px] border border-white/10 bg-black/14 p-5">
+      <div className="text-[11px] uppercase tracking-[0.28em] text-white/42">{label}</div>
+      <div className={`mt-4 break-words font-display tracking-[-0.03em] text-white ${large ? "text-5xl" : "text-3xl"}`}>
+        {value}
+      </div>
+      <div className="mt-4 text-sm leading-6 text-white/52">{hint}</div>
     </div>
   );
 }
@@ -808,70 +1523,38 @@ function ProgressRow({
   hash?: string | null;
   scanUrl?: string;
 }) {
-  const text = state === "complete" ? "完成" : state === "active" ? "处理中..." : "等待中";
+  const text = state === "complete" ? "Complete" : state === "active" ? "Processing..." : "Pending";
 
   return (
-    <div className="border-b border-[var(--line)] pb-4 last:border-b-0 last:pb-0">
+    <div className="rounded-[22px] border border-white/10 bg-black/12 p-4">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <span
-            className={`flex h-8 w-8 items-center justify-center border text-sm ${
+            className={`flex h-9 w-9 items-center justify-center rounded-full border text-sm ${
               state === "complete"
-                ? "border-[rgba(111,123,87,0.45)] text-[var(--success)]"
+                ? "border-emerald-300/35 bg-emerald-300/10 text-emerald-200"
                 : state === "active"
-                  ? "border-caramel text-caramel"
-                  : "border-[var(--line)] text-muted"
+                  ? "border-[#ffb476]/50 bg-[#ffb476]/12 text-[#ffd4aa]"
+                  : "border-white/10 bg-white/[0.04] text-white/38"
             }`}
           >
             {state === "complete" ? "✓" : state === "active" ? "⟳" : "·"}
           </span>
-          <span className="text-base">{title}</span>
+          <span className="text-base text-white">{title}</span>
         </div>
-        <span className="mono text-xs uppercase tracking-[0.22em] text-muted">{text}</span>
+        <span className="text-[11px] uppercase tracking-[0.28em] text-white/42">{text}</span>
       </div>
+      <div className="mt-4 h-px origin-left bg-gradient-to-r from-[#ffb476] via-white/60 to-transparent" data-progress-line />
       {hash ? (
-        <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted">
-          <span className="mono">{hash}</span>
+        <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-white/48">
+          <span className="font-mono">{hash}</span>
           {scanUrl ? (
-            <a href={scanUrl} target="_blank" rel="noreferrer" className="text-caramel underline-offset-4 hover:underline">
-              打开 Scan
+            <a href={scanUrl} target="_blank" rel="noreferrer" className="text-[#ffd4aa] underline-offset-4 hover:underline">
+              Open scan
             </a>
           ) : null}
         </div>
       ) : null}
-    </div>
-  );
-}
-
-function FeatureBlock({
-  index,
-  title,
-  body
-}: {
-  index: string;
-  title: string;
-  body: string;
-}) {
-  return (
-    <div className="border border-[var(--line)] bg-[rgba(255,252,248,0.35)] p-6">
-      <p className="mono text-[11px] uppercase tracking-[0.28em] text-caramel">{index}</p>
-      <h3 className="display mt-4 text-3xl">{title}</h3>
-      <p className="mt-4 text-base leading-8 text-muted">{body}</p>
-    </div>
-  );
-}
-
-function DollarCoin() {
-  return (
-    <div className="coin-spin" aria-hidden="true">
-      <div className="coin-rings" />
-      <div className="coin-face">
-        <div className="coin-mark">$</div>
-      </div>
-      <div className="coin-edge" />
-      <div className="coin-back">
-        <div className="coin-mark">$</div>
-      </div>
     </div>
   );
 }
