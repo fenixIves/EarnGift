@@ -21,6 +21,7 @@ import {
   type PortfolioPosition,
   type StrategyResult
 } from "@/lib/earn";
+import EarnGiftLanding from "@/components/EarnGiftLanding";
 
 type FlowStep = "idle" | "analyzing" | "amount" | "depositing" | "success";
 
@@ -424,6 +425,11 @@ export function EarnExperience() {
           </div>
         </section>
 
+
+          <EarnGiftLanding />
+
+
+
         <section id="flow" className="section-line grid gap-8 pt-8 lg:grid-cols-[0.86fr_1.14fr]">
           <div className="space-y-5">
             <p className="mono text-xs uppercase tracking-[0.28em] text-caramel">Five-step Flow</p>
@@ -751,24 +757,6 @@ export function EarnExperience() {
               </div>
             )}
           </div>
-        </section>
-
-        <section id="why" className="section-line grid gap-6 pb-8 pt-8 md:grid-cols-3">
-          <FeatureBlock
-            index="01"
-            title="普通用户语义"
-            body="把复杂的协议动作翻译成「授权资金」和「存入收益池」，把 DeFi 决策浓缩成普通人能理解的时间偏好选择。"
-          />
-          <FeatureBlock
-            index="02"
-            title="真实执行链路"
-            body="策略来自 LI.FI Earn，存款报价来自 Composer，钱包连接使用 RainbowKit，交易完成后直接给出 scan 与 portfolio 双重验证路径。"
-          />
-          <FeatureBlock
-            index="03"
-            title="演示与验证兼顾"
-            body="现场 demo 时能看到 quote、授权、存款、收益跳动；评委追问时也能立刻打开 tx scan，或调用 Earn positions 接口确认结果。"
-          />
         </section>
       </main>
     </div>
