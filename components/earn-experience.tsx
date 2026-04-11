@@ -586,7 +586,7 @@ export function EarnExperience() {
               <RevealText
                 as="p"
                 dataReveal
-                className="max-w-5xl font-display text-[clamp(3rem,11vw,8.7rem)] leading-[0.88] tracking-[-0.04em] text-white"
+                className="max-w-5xl font-display text-[clamp(3rem,11vw,6.7rem)] leading-[0.88] tracking-[-0.04em] text-white"
                 text="Put idle USDC to work like a savings account."
               />
               <motion.p
@@ -730,7 +730,7 @@ export function EarnExperience() {
             <RevealText
               as="h2"
               dataReveal
-              className="max-w-xl font-display text-[clamp(2.8rem,5vw,5rem)] leading-[0.95] tracking-[-0.04em]"
+              className="max-w-xl font-display text-[clamp(2.8rem,5vw,4rem)] leading-[0.95] tracking-[-0.04em]"
               text="A five-step flow that hides complexity behind one simple decision."
             />
             <p className="max-w-lg text-base leading-8 text-white/62">
@@ -1018,7 +1018,7 @@ export function EarnExperience() {
                       <div className="flex items-center justify-between gap-4">
                         <div>
                           <div className="font-display text-2xl text-white">{item.vaultName}</div>
-                          <div className="mt-2 text-sm text-white/48">{item.vaultAddress}</div>
+                          <div className="mt-2 text-sm text-white/48">{item.chainId}</div>
                         </div>
                         <div className="text-right">
                           <div className="font-display text-2xl text-white">{item.amountUsd}</div>

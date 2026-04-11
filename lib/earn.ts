@@ -206,21 +206,25 @@ export async function loadPortfolioPositions(address: string): Promise<Portfolio
     return [];
   }
 
-  const payload = (await response.json()) as { positions?: Array<Record<string, unknown>> };
+  const payload = (await response.json()) as {
+    positions?: Array<{
+      chainId?: number;
+      protocolName?: string;
+      asset?: { symbol?: string; name?: string };
+      balanceUsd?: string;
+      balanceNative?: string;
+    }>;
+  };
 
   return (payload.positions ?? []).flatMap((position) => {
-    const walletAddress = String(position.walletAddress ?? address);
-    const chainId = Number(position.chainId ?? position.networkId ?? 0);
-    const vaultAddress = String(position.address ?? position.vaultAddress ?? "");
-    const amount = String(position.balance ?? position.amount ?? "0");
-    const amountUsd = String(position.balanceUsd ?? position.amountUsd ?? "0");
-    const symbol = String(position.symbol ?? position.name ?? "Vault");
-    const vaultName = String(position.name ?? position.symbol ?? "Vault Position");
-    const apy = Number(position.apy ?? 0);
-
-    if (!vaultAddress) {
-      return [];
-    }
+    const walletAddress = address;
+    const chainId = position.chainId ?? 0;
+    const vaultAddress = "0x0000000000000000000000000000000000000000";
+    const amount = position.balanceNative ?? "0";
+    const amountUsd = position.balanceUsd ?? "0";
+    const symbol = position.asset?.symbol ?? "Vault";
+    const vaultName = position.protocolName ?? "Vault Position";
+    const apy = 0;
 
     return [
       {
