@@ -110,14 +110,22 @@ const faqItems = [
     question: "Why focus on 30 / 90 / 180 days?",
     answer: "Time is easier to understand than protocol mechanics. Users make one simple choice, and the system maps that to a strategy."
   },
-  {
-    question: "What happens if live data is unavailable?",
-    answer: "The flow falls back to a demo recommendation and labels it clearly, instead of pretending uncertain data is live."
-  },
-  {
-    question: "What is the point of the motion system?",
-    answer: "Motion is there to make state changes, progress, and confidence easier to read. It should support the product, not distract from it."
-  }
+    {
+        question: 'What\'s the minimum deposit?',
+        answer: 'There is no minimum. Start with any amount that makes sense for you—whether it\'s $10 or $10,000.',
+    },
+    {
+        question: 'Which networks are supported?',
+        answer: 'We support Ethereum, Arbitrum, Base, and Polygon. More chains coming soon based on community demand.',
+    },
+    {
+        question: 'How is the yield generated?',
+        answer: 'We aggregate yields from 20+ battle-tested DeFi protocols. Our system automatically routes your funds to the best opportunities while maintaining strict risk parameters.',
+    },
+    {
+        question: 'Are there any fees?',
+        answer: 'We charge a small performance fee only on the yield generated—never on your principal. No hidden fees, no withdrawal charges.',
+    },
 ];
 
 export function EarnExperience() {
@@ -395,6 +403,8 @@ export function EarnExperience() {
       return;
     }
 
+    document.getElementById("flow")?.scrollIntoView({ behavior: "smooth", block: "start" });
+
     try {
       setError(null);
       setStatusMessage("Checking the chain, approval, and deposit transaction.");
@@ -508,7 +518,7 @@ export function EarnExperience() {
     }
   };
 
-  const shareCard = async () => {
+  const downloadShareCard = async () => {
     if (!strategy || !shareCardRef.current) {
       return;
     }
@@ -521,17 +531,21 @@ export function EarnExperience() {
     const dataUrl = canvas.toDataURL("image/png");
     const link = document.createElement("a");
     link.href = dataUrl;
-    link.download = "warm-yield-share-card.png";
+    link.download = "earngift-share-card.png";
     link.click();
 
     const text = createShareText(numericAmount, strategy);
 
     try {
       await navigator.clipboard.writeText(`${text} Try it here -> ${currentUrl}`);
-      setShareMessage("Share card generated and share text copied.");
+      setShareMessage("Share card downloaded and share text copied to clipboard.");
     } catch {
-      setShareMessage("Share card generated.");
+      setShareMessage("Share card downloaded.");
     }
+  };
+
+  const openShareModal = () => {
+    setShowInviteCard(true);
   };
 
   return (
@@ -549,41 +563,44 @@ export function EarnExperience() {
       />
 
       <header
-        className={`fixed left-0 right-0 top-0 z-50 mx-auto flex w-full max-w-full items-center justify-between px-6 py-4 transition-all duration-300 lg:px-10 ${
+        className={`fixed left-0 right-0 top-0 z-50 mx-auto flex w-full max-w-full items-center justify-center px-6 py-4 transition-all duration-300 lg:px-10 ${
           isScrolled
             ? "border-b border-white/10 bg-[#07111f]/85 backdrop-blur-xl"
             : "bg-transparent"
         }`}
       >
-        <div className="flex items-center gap-4">
-          <div className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/5 backdrop-blur-md">
-            <Wallet2 className="h-5 w-5 text-[#ffd4aa]" />
-          </div>
-          <div>
-            <div className="text-[11px] uppercase tracking-[0.34em] text-white/45">LI.FI Hackathon</div>
-            <div className="font-display text-xl tracking-[0.24em] text-white">EARNGIFT</div>
-          </div>
-        </div>
+          <div className="max-w-[1400px] w-full flex justify-between">
+              <div className="flex items-center gap-4">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/5 backdrop-blur-md">
+                      <Wallet2 className="h-5 w-5 text-[#ffd4aa]" />
+                  </div>
+                  <div>
+                      <div className="text-[11px] uppercase tracking-[0.34em] text-white/45">LI.FI Hackathon</div>
+                      <div className="font-display text-xl tracking-[0.24em] text-white">EARNGIFT</div>
+                  </div>
+              </div>
 
-        <div className="flex items-center gap-5">
-          <nav className="hidden items-center gap-7 text-[11px] uppercase tracking-[0.3em] text-white/55 lg:flex">
-            <a href="#why" className="transition hover:text-white">
-              Narrative
-            </a>
-            <a href="#flow" className="transition hover:text-white">
-              Flow
-            </a>
-            <a href="#proof" className="transition hover:text-white">
-              Proof
-            </a>
-            <a href="#faq" className="transition hover:text-white">
-              FAQ
-            </a>
-          </nav>
-          <div className="[&>div>button]:rounded-full [&>div>button]:border [&>div>button]:border-[#ffb476]/40 [&>div>button]:bg-gradient-to-br [&>div>button]:from-[#ffbe8a]/96 [&>div>button]:to-[#f28c57]/90 [&>div>button]:px-5 [&>div>button]:py-2.5 [&>div>button]:text-xs [&>div>button]:font-medium [&>div>button]:uppercase [&>div>button]:tracking-[0.2em] [&>div>button]:text-[#08111f] [&>div>button]:shadow-lg [&>div>button]:shadow-[#f28c57]/30 [&>div>button]:transition-all hover:[&>div>button]:scale-105">
-            <ConnectButton />
+              <div className="flex items-center gap-5">
+                  <nav className="hidden items-center gap-7 text-[11px] uppercase tracking-[0.3em] text-white/55 lg:flex">
+                      <a href="#why" className="transition hover:text-white">
+                          Narrative
+                      </a>
+                      <a href="#flow" className="transition hover:text-white">
+                          Flow
+                      </a>
+                      <a href="#proof" className="transition hover:text-white">
+                          Proof
+                      </a>
+                      <a href="#faq" className="transition hover:text-white">
+                          FAQ
+                      </a>
+                  </nav>
+                  <div className="[&>div>button]:rounded-full [&>div>button]:border [&>div>button]:border-[#ffb476]/40 [&>div>button]:bg-gradient-to-br [&>div>button]:from-[#ffbe8a]/96 [&>div>button]:to-[#f28c57]/90 [&>div>button]:px-5 [&>div>button]:py-2.5 [&>div>button]:text-xs [&>div>button]:font-medium [&>div>button]:uppercase [&>div>button]:tracking-[0.2em] [&>div>button]:text-[#08111f] [&>div>button]:shadow-lg [&>div>button]:shadow-[#f28c57]/30 [&>div>button]:transition-all hover:[&>div>button]:scale-105">
+                      <ConnectButton />
+                  </div>
+              </div>
           </div>
-        </div>
+
       </header>
 
       <div className="h-20" />
@@ -704,11 +721,11 @@ export function EarnExperience() {
               <div className="marquee-inner">
                 {Array.from({ length: 2 }).map((_, index) => (
                   <Fragment key={index}>
-                    <span>THREE.js background</span>
-                    <span>GSAP scroll orchestration</span>
-                    <span>Framer Motion text reveal</span>
-                    <span>Live transaction feedback</span>
-                    <span>Warm metal palette</span>
+                    <span>One-click deposit</span>
+                    <span>Auto-compound yield</span>
+                    <span>No DeFi jargon</span>
+                    <span>Real-time earnings</span>
+                    <span>Multi-chain vaults</span>
                   </Fragment>
                 ))}
               </div>
@@ -786,7 +803,9 @@ export function EarnExperience() {
 
             {(step === "idle" || step === "analyzing") && (
               <div className="space-y-6">
-                <FlowHeader stepLabel="Step 01" title="How long do you want to save?" body="Choose a time horizon first. The product handles the strategy details for you." />
+                <div className="flex items-center justify-between gap-4">
+                  <FlowHeader stepLabel="Step 01" title="How long do you want to save?" body="Choose a time horizon first. The product handles the strategy details for you." />
+                </div>
                 <div className="grid gap-4 md:grid-cols-3">
                   {strategyCards.map((card, index) => {
                     const active = selectedDuration === card.duration;
@@ -815,6 +834,17 @@ export function EarnExperience() {
                       </motion.button>
                     );
                   })}
+                </div>
+
+                <div className="flex justify-end gap-3">
+                  <button
+                    type="button"
+                    disabled={step === "analyzing" || !strategy}
+                    onClick={() => setStep("amount")}
+                    className="lux-button lux-button-primary disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Next: Review strategy
+                  </button>
                 </div>
 
                 <AnimatePresence>
@@ -850,12 +880,23 @@ export function EarnExperience() {
 
             {step === "amount" && strategy && (
               <div className="space-y-6">
-                <FlowHeader
-                  stepLabel="Step 02"
-                  title="Your strategy is ready"
-                  body="Review the strategy, enter an amount, and confirm the deposit."
-                  badge={strategy.source === "live" ? "Live data" : "Fallback"}
-                />
+                <div className="flex items-start justify-between gap-4">
+                  <FlowHeader
+                    stepLabel="Step 02"
+                    title="Your strategy is ready"
+                    body="Review the strategy, enter an amount, and confirm the deposit."
+                    badge={strategy.source === "live" ? "Live data" : "Fallback"}
+                  />
+                  <div className="flex shrink-0 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setStep("idle")}
+                      className="lux-button lux-button-secondary text-xs px-3 py-2"
+                    >
+                      Back
+                    </button>
+                  </div>
+                </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <DataTile label="Recommended strategy" value={strategy.vaultName} hint={`${strategy.protocolName} / ${strategy.chainName}`} />
@@ -881,7 +922,9 @@ export function EarnExperience() {
                 </label>
 
                 <div className="rounded-[28px] border border-white/10 bg-white/[0.04] p-5">
-                  <FlowHeader stepLabel="Step 03" title="Review before deposit" body="See the route details before you confirm the transaction." />
+                  <div className="flex items-start justify-between gap-4">
+                    <FlowHeader stepLabel="Step 03" title="Review before deposit" body="See the route details before you confirm the transaction." />
+                  </div>
                   <div className="mt-5 grid gap-4 md:grid-cols-2">
                     <DataTile
                       label="You deposit"
@@ -923,7 +966,16 @@ export function EarnExperience() {
 
             {step === "depositing" && strategy && (
               <div className="space-y-6">
-                <FlowHeader stepLabel="Step 04" title="Your deposit is in progress" body="Track approval and deposit in real time." />
+                <div className="flex items-start justify-between gap-4">
+                  <FlowHeader stepLabel="Step 04" title="Your deposit is in progress" body="Track approval and deposit in real time." />
+                  <button
+                    type="button"
+                    disabled
+                    className="lux-button lux-button-secondary text-xs px-3 py-2 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Processing...
+                  </button>
+                </div>
                 <div className="space-y-4 rounded-[28px] border border-white/10 bg-white/[0.04] p-5">
                   <ProgressRow
                     title="Step 1: Approve funds"
@@ -943,11 +995,29 @@ export function EarnExperience() {
 
             {step === "success" && strategy && position && depositedAt && (
               <div className="space-y-6">
-                <FlowHeader
-                  stepLabel="Step 04"
-                  title="Your money is now working"
-                  body={`Your ${numericAmount} ${strategy.inputToken} is now earning. Track growth, verify the position, and share it.`}
-                />
+                <div className="flex items-start justify-between gap-4">
+                  <FlowHeader
+                    stepLabel="Step 04"
+                    title="Your money is now working"
+                    body={`Your ${numericAmount} ${strategy.inputToken} is now earning. Track growth, verify the position, and share it.`}
+                  />
+                  <div className="flex shrink-0 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setStep("idle");
+                        setAmount("");
+                        setStrategy(null);
+                        setSelectedDuration(null);
+                        setQuote(null);
+                        setError(null);
+                      }}
+                      className="lux-button lux-button-secondary text-xs px-3 py-2"
+                    >
+                      Start over
+                    </button>
+                  </div>
+                </div>
 
                 <div className="grid gap-4 md:grid-cols-3">
                   <DataTile label="Earned today" value={`$${position.earned.toFixed(6)}`} hint="Refreshes every 3 seconds" large />
@@ -1032,8 +1102,8 @@ export function EarnExperience() {
               </p>
               <div className="mt-5 space-y-3">
                 {portfolioPositions.length ? (
-                  portfolioPositions.map((item) => (
-                    <div key={`${item.chainId}-${item.vaultAddress}`} className="rounded-[22px] border border-white/10 bg-black/14 p-4">
+                  portfolioPositions.map((item, index) => (
+                    <div key={`${item.chainId}-${item.vaultAddress}-${index}`} className="rounded-[22px] border border-white/10 bg-black/14 p-4">
                       <div className="flex items-center justify-between gap-4">
                         <div>
                           <div className="font-display text-2xl text-white">{item.vaultName}</div>
@@ -1059,9 +1129,9 @@ export function EarnExperience() {
               ) : null}
             </div>
 
-            <InviteShareCard ref={shareCardRef} strategy={strategy} amount={numericAmount} className="glass-panel rounded-[28px] p-6">
+            <InviteShareCard ref={shareCardRef} strategy={strategy} amount={numericAmount} className="glass-panel rounded-[28px] p-6" showUrl={true}>
               <div className="mt-8 flex flex-wrap gap-3">
-                <button type="button" onClick={shareCard} className="lux-button lux-button-secondary">
+                <button type="button" onClick={openShareModal} className="lux-button lux-button-secondary">
                   Generate share card
                 </button>
                 <a
@@ -1133,6 +1203,7 @@ export function EarnExperience() {
             strategy={strategy}
             amount={numericAmount}
             onClose={() => setShowInviteCard(false)}
+            onDownload={downloadShareCard}
           />
         ) : null}
       </AnimatePresence>
@@ -1397,26 +1468,76 @@ const InviteShareCard = forwardRef<HTMLDivElement, {
   children?: React.ReactNode;
   cardTitle?: string;
   cardBody?: string;
+  showUrl?: boolean;
 }>(function InviteShareCard({
   strategy,
   amount,
   className,
   children,
   cardTitle,
-  cardBody
+  cardBody,
+  showUrl
 }, ref) {
   return (
-    <div ref={ref} className={className}>
-      <div className="text-[11px] uppercase tracking-[0.3em] text-[#ffd4aa]/82">Share Card</div>
-      <h3 className="mt-4 max-w-lg font-display text-4xl leading-tight text-white">
-        {cardTitle ?? (strategy ? `I deposited ${amount || 0} ${strategy.inputToken} into a yield vault` : "Turn saving into something worth sharing")}
-      </h3>
-      <p className="mt-4 max-w-xl text-base leading-8 text-white/62">
-        {cardBody ?? (strategy
-          ? `${strategy.apy.toFixed(2)}% APY, with earnings growing every day.`
-          : "Generate a shareable card after a successful deposit and invite friends to try it.")}
-      </p>
-      {children}
+    <div ref={ref} className={`${className} relative overflow-hidden`}>
+      {/* Decorative gradient orb */}
+      <div className="absolute -right-20 -top-20 h-40 w-40 rounded-full bg-[#ffb476]/10 blur-3xl" />
+      <div className="absolute -left-10 -bottom-10 h-32 w-32 rounded-full bg-[#ff6b6b]/5 blur-3xl" />
+
+      <div className="relative">
+        {/* Header badge */}
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#ffb476]/30 bg-[#ffb476]/10">
+            <svg className="h-4 w-4 text-[#ffb476]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+            </svg>
+          </div>
+          <div className="text-[11px] uppercase tracking-[0.3em] text-[#ffd4aa]/82">Share Card</div>
+        </div>
+
+        {/* Main content */}
+        <h3 className="mt-6 max-w-lg font-display text-4xl leading-[1.1] tracking-[-0.02em] text-white">
+          {cardTitle ?? (strategy ? `I deposited ${amount || 0} ${strategy.inputToken} into a yield vault` : "Turn saving into something worth sharing")}
+        </h3>
+
+        <p className="mt-4 max-w-xl text-base leading-7 text-white/70">
+          {cardBody ?? (strategy
+            ? `${strategy.apy.toFixed(2)}% APY, with earnings growing every day.`
+            : "Generate a shareable card after a successful deposit and invite friends to try it.")}
+        </p>
+
+        {/* Stats row for strategy */}
+        {strategy && (
+          <div className="mt-6 flex items-center gap-6 border-y border-white/10 py-4">
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.28em] text-white/40">Amount</div>
+              <div className="mt-1 font-display text-2xl text-white">{amount || 0} {strategy.inputToken}</div>
+            </div>
+            <div className="h-10 w-px bg-white/10" />
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.28em] text-white/40">APY</div>
+              <div className="mt-1 font-display text-2xl text-[#ffb476]">{strategy.apy.toFixed(2)}%</div>
+            </div>
+            <div className="h-10 w-px bg-white/10" />
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.28em] text-white/40">Duration</div>
+              <div className="mt-1 font-display text-2xl text-white">{strategy.duration}d</div>
+            </div>
+          </div>
+        )}
+
+        {/* URL display */}
+        {showUrl && (
+          <div className="mt-4 flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2">
+            <svg className="h-4 w-4 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+            </svg>
+            <span className="text-sm text-white/60">earngift.li.fi</span>
+          </div>
+        )}
+
+        {children}
+      </div>
     </div>
   );
 });
@@ -1424,18 +1545,20 @@ const InviteShareCard = forwardRef<HTMLDivElement, {
 function InviteCardModal({
   strategy,
   amount,
-  onClose
+  onClose,
+  onDownload
 }: {
   strategy: StrategyResult | null;
   amount: number;
   onClose: () => void;
+  onDownload?: () => void;
 }) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#02060d]/72 px-4 backdrop-blur-md"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#02060d]/90 px-4"
       onClick={onClose}
     >
       <motion.div
@@ -1452,9 +1575,33 @@ function InviteCardModal({
           className="glass-panel rounded-[32px] p-6 sm:p-8"
           cardTitle="Invite a friend to start earning with EarnGift"
           cardBody="Put idle USDC to work in one clear flow. Pick a duration, confirm the deposit, and watch earnings grow in real time."
+          showUrl={true}
         >
-          <div className="mt-8 flex flex-wrap gap-3">
-            <button type="button" onClick={onClose} className="lux-button lux-button-secondary">
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={onDownload}
+              className="lux-button lux-button-primary flex items-center gap-2"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Download card
+            </button>
+            <a
+              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                strategy ? `I deposited ${amount || 0} ${strategy.inputToken} at ${strategy.apy.toFixed(2)}% APY on EarnGift! Try it here -> earngift.li.fi` : "Check out EarnGift - simple DeFi yield"
+              )}`}
+              target="_blank"
+              rel="noreferrer"
+              className="lux-button lux-button-secondary flex items-center gap-2"
+            >
+              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+              </svg>
+              Share on X
+            </a>
+            <button type="button" onClick={onClose} className="lux-button lux-button-secondary ml-auto">
               Close
             </button>
           </div>

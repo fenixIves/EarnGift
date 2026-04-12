@@ -3,7 +3,7 @@ import "./globals.css";
 import { ProvidersGate } from "./providers-gate";
 
 export const metadata: Metadata = {
-  title: "Warm Yield",
+  title: "Earn Gift",
   description: "A human-first LiFi Earn demo for the DeFi UX Challenge."
 };
 
