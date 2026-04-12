@@ -1137,6 +1137,8 @@ function AnimatedBackdrop() {
 
 function BackdropMeshes() {
   const groupRef = useRef<THREE.Group>(null);
+  const btcRef = useRef<THREE.Mesh>(null);
+  const ethRef = useRef<THREE.Mesh>(null);
 
   useFrame((state, delta) => {
     if (!groupRef.current) {
@@ -1145,26 +1147,44 @@ function BackdropMeshes() {
 
     groupRef.current.rotation.y += delta * 0.08;
     groupRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.14) * 0.12;
+
+    if (btcRef.current) {
+      btcRef.current.rotation.y += delta * 0.3;
+    }
+    if (ethRef.current) {
+      ethRef.current.rotation.y += delta * 0.25;
+      ethRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.2) * 0.15;
+    }
   });
 
   return (
     <group ref={groupRef}>
       <Float speed={1.4} rotationIntensity={0.65} floatIntensity={0.7}>
-        <mesh position={[-2.5, 1.8, -1]}>
-          <icosahedronGeometry args={[1.3, 18]} />
-          <MeshDistortMaterial color="#ff9966" transparent opacity={0.46} distort={0.48} speed={1.8} roughness={0.18} metalness={0.25} />
-        </mesh>
+        <group position={[-2.5, 1.8, -1]} rotation={[Math.PI / 2, 0, 0]}>
+          <mesh ref={btcRef}>
+            <cylinderGeometry args={[1.2, 1.2, 0.15, 64]} />
+            <meshStandardMaterial color="#c9956a" transparent opacity={0.5} metalness={0.7} roughness={0.35} />
+          </mesh>
+          <mesh ref={btcRef} position={[0, 0.08, 0]}>
+            <cylinderGeometry args={[1.0, 1.0, 0.02, 64]} />
+            <meshStandardMaterial color="#b88a5e" transparent opacity={0.35} metalness={0.85} roughness={0.25} />
+          </mesh>
+          <mesh ref={btcRef} position={[0, -0.08, 0]}>
+            <cylinderGeometry args={[1.0, 1.0, 0.02, 64]} />
+            <meshStandardMaterial color="#b88a5e" transparent opacity={0.35} metalness={0.85} roughness={0.25} />
+          </mesh>
+        </group>
       </Float>
       <Float speed={1.2} rotationIntensity={1} floatIntensity={1.1}>
-        <mesh position={[2.4, -0.6, -0.5]}>
-          <torusKnotGeometry args={[0.95, 0.28, 180, 24]} />
-          <meshStandardMaterial color="#8ccfff" wireframe transparent opacity={0.32} />
+        <mesh ref={ethRef} position={[2.4, -0.6, -0.5]} scale={[0.7, 1.3, 0.7]}>
+          <octahedronGeometry args={[1.1, 0]} />
+          <meshStandardMaterial color="#8ccfff" transparent opacity={0.45} metalness={0.5} roughness={0.25} />
         </mesh>
       </Float>
       <Float speed={1.7} rotationIntensity={0.8} floatIntensity={0.9}>
         <mesh position={[0.8, 2.4, -2.2]}>
           <sphereGeometry args={[0.72, 48, 48]} />
-          <meshStandardMaterial color="#fff0d7" transparent opacity={0.16} metalness={0.8} roughness={0.18} />
+          <meshStandardMaterial color="#4a90d9" transparent opacity={0.35} metalness={0.4} roughness={0.6} />
         </mesh>
       </Float>
     </group>
