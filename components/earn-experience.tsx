@@ -153,6 +153,15 @@ export function EarnExperience() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [showInviteCard, setShowInviteCard] = useState(false);
   const [currentUrl, setCurrentUrl] = useState("");
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const numericAmount = Number(amount || 0);
   const projections = useMemo(() => {
@@ -539,7 +548,13 @@ export function EarnExperience() {
         data-parallax="fast"
       />
 
-      <header className="relative z-20 mx-auto flex w-full max-w-[1440px] items-center justify-between px-6 py-6 lg:px-10">
+      <header
+        className={`fixed left-0 right-0 top-0 z-50 mx-auto flex w-full max-w-full items-center justify-between px-6 py-4 transition-all duration-300 lg:px-10 ${
+          isScrolled
+            ? "border-b border-white/10 bg-[#07111f]/85 backdrop-blur-xl"
+            : "bg-transparent"
+        }`}
+      >
         <div className="flex items-center gap-4">
           <div className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/5 backdrop-blur-md">
             <Wallet2 className="h-5 w-5 text-[#ffd4aa]" />
@@ -565,9 +580,13 @@ export function EarnExperience() {
               FAQ
             </a>
           </nav>
-          <ConnectButton />
+          <div className="[&>div>button]:rounded-full [&>div>button]:border [&>div>button]:border-[#ffb476]/40 [&>div>button]:bg-gradient-to-br [&>div>button]:from-[#ffbe8a]/96 [&>div>button]:to-[#f28c57]/90 [&>div>button]:px-5 [&>div>button]:py-2.5 [&>div>button]:text-xs [&>div>button]:font-medium [&>div>button]:uppercase [&>div>button]:tracking-[0.2em] [&>div>button]:text-[#08111f] [&>div>button]:shadow-lg [&>div>button]:shadow-[#f28c57]/30 [&>div>button]:transition-all hover:[&>div>button]:scale-105">
+            <ConnectButton />
+          </div>
         </div>
       </header>
+
+      <div className="h-20" />
 
       <main className="relative z-10 mx-auto flex w-full max-w-[1440px] flex-col px-6 pb-24 lg:px-10">
         <section
@@ -1277,15 +1296,15 @@ function HeroVaultCard({
 
         <div className="mt-8 grid gap-4 sm:grid-cols-2">
           <PreviewTile label="Route state" value={strategy ? strategy.protocolName : "Discover"} hint={strategy ? strategy.chainName : "Waiting for a duration"} />
-          <PreviewTile
-            label="Projected receive"
-            value={quotedReceive ? quotedReceive.best : "--"}
-            hint={quotedReceive ? `minimum ${quotedReceive.minimum}` : "Share anytime"}
-            hintAction={{
-              label: "Open card",
-              onClick: onOpenInviteCard
-            }}
-          />
+          {/*<PreviewTile*/}
+          {/*  label="Projected receive"*/}
+          {/*  value={quotedReceive ? quotedReceive.best : "--"}*/}
+          {/*  hint={quotedReceive ? `minimum ${quotedReceive.minimum}` : "Share anytime"}*/}
+          {/*  hintAction={{*/}
+          {/*    label: "Open card",*/}
+          {/*    onClick: onOpenInviteCard*/}
+          {/*  }}*/}
+          {/*/>*/}
         </div>
 
         <div className="relative mt-8 overflow-hidden rounded-[28px] border border-white/10 bg-black/20 p-6">
