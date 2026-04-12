@@ -1,44 +1,50 @@
-# Warm Yield
+# Earn Gift
 
-A hackathon-ready `Next.js + Tailwind` demo for the LiFi `DeFi UX Challenge`.
+Deposit stablecoins on Base in a calm, one-screen flow that feels like a savings form, not a protocol dashboard.
 
-## What is included
+## Background / Pain Points
 
-- A warm retro-futurist landing page and core single-page experience
-- 5-step product flow based on the hackathon prompt
-- Real LI.FI Earn vault discovery through `/api/strategy`
-- RainbowKit wallet connection
-- Real Composer quote generation through `/api/quote`
-- Approval + deposit execution path with tx hash and scan links
-- Portfolio verification through `/api/portfolio`
-- Earnings polling through `/api/position`
-- Share-card generation with `html2canvas`
+- DeFi deposit flows are noisy, multi-step, and intimidating for non-native users.
+- Users struggle to choose a vault, understand risk, and verify that funds are working.
+- Cross-chain choices add friction and increase the chance of failed tests.
 
-## Flow
+## Core Features (Focus)
 
-1. User chooses `30 / 90 / 180` days.
-2. The app calls LI.FI Earn vault discovery and applies the simplified routing logic:
-   - `30 days -> protocol=aave`
-   - `90 days -> protocol=morpho`
-   - `180 days -> all supported protocols, top APY`
-3. User connects wallet and enters amount.
-4. The app requests a real Composer quote.
-5. The app can submit approval and deposit transactions, then show scan links and portfolio verification.
+- Base-first vault discovery with LI.FI Earn, reducing failed deposits from wrong-chain picks.
+- Real Composer quote → approval → deposit execution, with on-chain tx hashes and scan links.
+- Portfolio verification via LI.FI Earn positions and a live “earnings tick” after deposit.
+- Simplified “deposit slip” UI: duration → strategy → amount → execute → verify.
 
-## Local development
+## Quick Start
 
 ```bash
 pnpm install
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open `http://localhost:3000`.
 
-## Notes
+## Tech Stack
 
-- For WalletConnect-based wallets, replace `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` with your own project id.
-- Portfolio verification can also be checked manually:
+- Next.js (App Router)
+- React + TypeScript
+- Tailwind CSS
+- wagmi + RainbowKit
+- viem
+- LI.FI Earn + Composer APIs
 
-```bash
-curl -X GET 'https://earn.li.fi/v1/earn/portfolio/0xYOUR_WALLET_ADDRESS/positions'
-```
+## Highlights / Innovation
+
+- Base-prioritized strategy selection to minimize wrong-chain failures during demos.
+- Plain-language UX: translates protocol actions into “approve” and “deposit” steps.
+- Verification built in: scan links and portfolio API check on the success screen.
+
+## Team
+
+- Product, design, and engineering team focused on DeFi onboarding UX.
+
+## Future Plans
+
+- Smarter approvals (batch or allowance presets) to reduce repeated gas.
+- Risk notes per vault and clearer safety cues for first-time users.
+- More chains once the Base-first experience is proven.
