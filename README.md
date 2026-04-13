@@ -2,7 +2,15 @@
 
 > **DeFi saving that feels like a form, not a dashboard.**
 
-<!-- [DEMO_SCREENSHOT_PLACEHOLDER] - Add a screenshot/GIF of your hero screen here -->
+`Deposit your idle USDC into the earnings pool, as easy as depositing money in a bank - no need to understand DeFi, done in 30 seconds, and the money keeps growing every second.`
+
+<div align="center">
+  <img src="public/earn1.png" width="45%" alt="EarnGift Hero" />
+  <img src="public/earn2.png" width="45%" alt="Strategy Selection" />
+  <br/>
+  <img src="public/earn3.png" width="45%" alt="Deposit Flow" />
+  <img src="public/earn4.png" width="45%" alt="Success & Share" />
+</div>
 
 **Live Demo Website:** [https://earn-gift-li-fi.vercel.app](https://earn-gift-li-fi.vercel.app)  
 **Video Walkthrough:** [30-sec Demo](https://your-demo-link) <!-- Replace with actual link -->
