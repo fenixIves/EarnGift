@@ -5,9 +5,11 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Float, MeshDistortMaterial, Sparkles } from "@react-three/drei";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { ChevronDown, ArrowUpRight, ShieldCheck, Orbit, Waves, Wallet2 } from "lucide-react";
+import { ChevronDown, ArrowUpRight, ShieldCheck, Orbit, Waves, Wallet2, Sparkles as SparklesIcon } from "lucide-react";
 import { erc20Abi, formatUnits, parseUnits, type Address, type Hash, type Hex } from "viem";
 import { Fragment, forwardRef, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import confetti from "canvas-confetti";
+import { QRCodeSVG } from "qrcode.react";
 import * as THREE from "three";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -548,6 +550,37 @@ export function EarnExperience() {
     setShowInviteCard(true);
   };
 
+  // Trigger confetti when deposit succeeds
+  useEffect(() => {
+    if (step === "success") {
+      const duration = 3000;
+      const end = Date.now() + duration;
+
+      const frame = () => {
+        confetti({
+          particleCount: 3,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 },
+          colors: ["#ffb476", "#ff6b6b", "#ffd4aa"]
+        });
+        confetti({
+          particleCount: 3,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1 },
+          colors: ["#ffb476", "#ff6b6b", "#ffd4aa"]
+        });
+
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        }
+      };
+
+      frame();
+    }
+  }, [step]);
+
   return (
     <div ref={rootRef} className="lux-shell text-white">
       <AnimatedBackdrop />
@@ -614,7 +647,7 @@ export function EarnExperience() {
             <div data-reveal-chunk className="inline-flex items-center gap-3 rounded-full border border-white/12 bg-white/6 px-4 py-2 backdrop-blur-md">
               <span className="h-2 w-2 rounded-full bg-[#ffb476] shadow-[0_0_16px_rgba(255,180,118,0.8)]" />
               <span className="text-[11px] uppercase tracking-[0.32em] text-white/65">
-                Simple savings, powered by DeFi
+                Simple savings, powered by LI.FI Earn
               </span>
             </div>
 
@@ -679,7 +712,7 @@ export function EarnExperience() {
           data-story-section
           className="relative grid gap-10 py-10 lg:grid-cols-[0.78fr_1.22fr] lg:py-24"
         >
-          <div data-reveal-chunk className="sticky top-20 h-fit space-y-6 self-start">
+          <div data-reveal-chunk className="relative space-y-6 lg:sticky lg:top-20 lg:h-fit lg:self-start">
             <SectionEyebrow>Why EarnGift</SectionEyebrow>
             <RevealText
               as="h2"
@@ -995,6 +1028,17 @@ export function EarnExperience() {
 
             {step === "success" && strategy && position && depositedAt && (
               <div className="space-y-6">
+                {/* Success celebration badge */}
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                  className="flex items-center gap-3 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-4 py-2 w-fit"
+                >
+                  <SparklesIcon className="h-4 w-4 text-emerald-400" />
+                  <span className="text-sm font-medium text-emerald-300">Deposit Successful!</span>
+                </motion.div>
+
                 <div className="flex items-start justify-between gap-4">
                   <FlowHeader
                     stepLabel="Step 04"
@@ -1131,18 +1175,20 @@ export function EarnExperience() {
 
             <InviteShareCard ref={shareCardRef} strategy={strategy} amount={numericAmount} className="glass-panel rounded-[28px] p-6" showUrl={true}>
               <div className="mt-8 flex flex-wrap gap-3">
-                <button type="button" onClick={openShareModal} className="lux-button lux-button-secondary">
+                <button type="button" onClick={openShareModal} className="lux-button lux-button-secondary flex items-center gap-2">
+                  <SparklesIcon className="h-4 w-4" />
                   Generate share card
                 </button>
                 <a
-                  href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-                    `${strategy ? createShareText(numericAmount, strategy) : "I am trying EarnGift on LI.FI Earn"} Try it here -> ${currentUrl}`
-                  )}`}
+                  href="https://github.com/fenixIves/EarnGift"
                   target="_blank"
                   rel="noreferrer"
-                  className="lux-button lux-button-secondary"
+                  className="lux-button lux-button-secondary flex items-center gap-2"
                 >
-                  Share on X
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                  </svg>
+                  View on GitHub
                 </a>
               </div>
               {shareMessage ? <p className="mt-4 text-sm text-white/52">{shareMessage}</p> : null}
@@ -1526,13 +1572,37 @@ const InviteShareCard = forwardRef<HTMLDivElement, {
           </div>
         )}
 
-        {/* URL display */}
+        {/* QR Code and URL section */}
         {showUrl && (
-          <div className="mt-4 flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2">
-            <svg className="h-4 w-4 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-            </svg>
-            <span className="text-sm text-white/60">earngift.li.fi</span>
+          <div className="mt-6 flex items-center gap-6">
+            <div className="shrink-0 rounded-[16px] border border-white/10 bg-white p-3">
+              <QRCodeSVG
+                value="https://li.fi"
+                size={80}
+                level="M"
+                bgColor="#ffffff"
+                fgColor="#07111f"
+              />
+            </div>
+            <div className="flex-1 space-y-3">
+              <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2">
+                <svg className="h-4 w-4 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                </svg>
+                <span className="text-sm text-white/60">li.fi</span>
+              </div>
+              <a
+                href="https://github.com/fenixIves/EarnGift"
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 text-sm text-white/50 transition hover:text-white/80"
+              >
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+                <span>View on GitHub</span>
+              </a>
+            </div>
           </div>
         )}
 
@@ -1588,18 +1658,35 @@ function InviteCardModal({
               </svg>
               Download card
             </button>
-            <a
-              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-                strategy ? `I deposited ${amount || 0} ${strategy.inputToken} at ${strategy.apy.toFixed(2)}% APY on EarnGift! Try it here -> earngift.li.fi` : "Check out EarnGift - simple DeFi yield"
-              )}`}
-              target="_blank"
-              rel="noreferrer"
+            <button
+              type="button"
+              onClick={() => {
+                // Open X with pre-filled text
+                const text = strategy
+                  ? `I deposited ${amount || 0} ${strategy.inputToken} at ${strategy.apy.toFixed(2)}% APY on EarnGift! 🎉\n\nSimple DeFi yield, powered by @lifiprotocol\n\nTry it here -> li.fi\n\n#EarnGift #DeFi #Yield`
+                  : "Check out EarnGift - simple DeFi yield powered by @lifiprotocol";
+                window.open(
+                  `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`,
+                  "_blank"
+                );
+              }}
               className="lux-button lux-button-secondary flex items-center gap-2"
             >
               <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
               </svg>
               Share on X
+            </button>
+            <a
+              href="https://github.com/fenixIves/EarnGift"
+              target="_blank"
+              rel="noreferrer"
+              className="lux-button lux-button-secondary flex items-center gap-2"
+            >
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+              </svg>
+              GitHub
             </a>
             <button type="button" onClick={onClose} className="lux-button lux-button-secondary ml-auto">
               Close
