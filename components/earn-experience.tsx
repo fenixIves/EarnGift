@@ -1142,8 +1142,27 @@ export function EarnExperience() {
                 </div>
               </div>
               <p className="mt-4 text-sm leading-7 text-white/58">
-                {portfolioMessage ?? "Load the LI.FI Earn portfolio here after a successful deposit."}
+                {portfolioMessage ?? "Connect your wallet and click below to check your active positions."}
               </p>
+
+              <div className="mt-4 flex flex-wrap gap-3">
+                {isConnected ? (
+                  <button
+                    type="button"
+                    onClick={() => refreshPortfolio()}
+                    disabled={portfolioLoading}
+                    className="lux-button lux-button-primary flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <ShieldCheck className="h-4 w-4" />
+                    {portfolioLoading ? "Checking..." : portfolioPositions.length ? "Refresh positions" : "Check my positions"}
+                  </button>
+                ) : (
+                  <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/52">
+                    <Wallet2 className="h-4 w-4" />
+                    Connect wallet to verify
+                  </div>
+                )}
+              </div>
               <div className="mt-5 space-y-3">
                 {portfolioPositions.length ? (
                   portfolioPositions.map((item, index) => (
@@ -1663,7 +1682,7 @@ function InviteCardModal({
               onClick={() => {
                 // Open X with pre-filled text
                 const text = strategy
-                  ? `I deposited ${amount || 0} ${strategy.inputToken} at ${strategy.apy.toFixed(2)}% APY on EarnGift! 🎉\n\nSimple DeFi yield, powered by @lifiprotocol\n\nTry it here -> li.fi\n\n#EarnGift #DeFi #Yield`
+                  ? `I deposited ${amount || 0} ${strategy.inputToken} at ${strategy.apy.toFixed(2)}% APY on EarnGift! 🎉\n\nSimple DeFi yield, powered by @lifiprotocol\n\nTry it here -> https://earn-gift-li-fi.vercel.app/\n\n#EarnGift #DeFi #Yield`
                   : "Check out EarnGift - simple DeFi yield powered by @lifiprotocol";
                 window.open(
                   `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`,
