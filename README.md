@@ -4,7 +4,7 @@
 
 <!-- [DEMO_SCREENSHOT_PLACEHOLDER] - Add a screenshot/GIF of your hero screen here -->
 
-**Live Demo:** `http://localhost:3000` (local)  
+**Live Demo Website:** `https://earn-gift-li-fi.vercel.app`   
 **Video Walkthrough:** [30-sec Demo](https://your-demo-link) <!-- Replace with actual link -->
 
 ---
