@@ -14,5 +14,4 @@ export const walletConfig = getDefaultConfig({
     42161: http(process.env.NEXT_PUBLIC_ARBITRUM_RPC || "https://arb1.arbitrum.io/rpc"),
   },
   ssr: true,
-  polling: false,
 });
