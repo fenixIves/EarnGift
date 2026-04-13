@@ -13,7 +13,7 @@
 </div>
 
 **Live Demo Website:** [https://earn-gift-li-fi.vercel.app](https://earn-gift-li-fi.vercel.app)  
-**Video Walkthrough:** [30-sec Demo](https://your-demo-link) <!-- Replace with actual link -->
+**Video Walkthrough:** [Demo Video](https://your-demo-link) <!-- Replace with actual link -->
 
 ---
 
@@ -44,7 +44,26 @@ User enters amount
 One-tap execute → Live verification
 ```
 
-### What Makes It Different
+EarnGift is a beginner-friendly DeFi saving experience for users who do not want to think in protocols, chains, and vault mechanics. Instead of presenting a dashboard full of DeFi-native concepts, the app turns saving into a familiar flow:
+
+1. Pick how long you want to save
+2. Review the recommended strategy
+3. Enter a USDC amount
+4. Confirm the deposit
+5. Verify that the position is live
+
+The core product idea is simple: abstract the complexity of yield discovery into a time-based decision, then preserve trust with clear proof after the transaction. That means users still get transparency, but only at the moments where it helps them make a decision.
+
+### ✨What The Project Does
+
+- Translates a simple duration choice like `30 / 90 / 180 days` into a recommended yield strategy
+- Surfaces the selected vault, protocol, chain, APY, and estimated return in plain language
+- Generates a live deposit quote after the user enters an amount
+- Guides the user through approval and deposit in one clear flow
+- Shows post-deposit success state, transaction proof, and portfolio verification
+- Lets users generate a share card so the outcome feels visible and social, not hidden and technical
+
+### ✨What Makes It Different
 
 | Feature | Impact |
 |---------|--------|
@@ -67,6 +86,41 @@ One-tap execute → Live verification
 - **DeFi APIs:** LI.FI Earn (vault discovery) + Composer (quotes & execution)
 - **Verification:** LI.FI Portfolio API + on-chain event polling
 
+### ✨How We Use The LI.FI Earn API
+
+EarnGift uses the LI.FI Earn ecosystem in the parts of the flow that matter most for user trust and simplicity:
+
+#### 1. Strategy discovery
+
+When a user chooses a duration, we call LI.FI Earn vault data to discover transactional USDC vaults across supported chains. We then:
+
+- filter for usable vaults
+- prioritize Base when possible to reduce demo friction and chain confusion
+- map short and medium durations toward familiar protocol preferences like Aave and Morpho
+- sort by available APY and normalize the result into a strategy card the user can actually understand
+
+This is what powers the recommendation step instead of forcing users to manually compare vaults.
+
+#### 2. Portfolio verification after deposit
+
+After a successful transaction, we call the LI.FI Earn portfolio endpoint for the connected wallet and load the returned positions into the proof section. This helps answer the most important beginner question after depositing:
+
+**"Did my money actually arrive and start working?"**
+
+That verification layer is a core part of the product, not an afterthought.
+
+#### 3. Deposit flow support
+
+We also use LI.FI-powered quote and execution flow to prepare deposit transactions after the strategy is selected. That lets the user review amount, estimated value, and gas before signing, while the app handles approval and deposit as one guided sequence.
+
+### ✨Why This Matters
+
+Most DeFi products simplify inputs, but not confidence. EarnGift tries to simplify both:
+
+- simpler decision before the deposit
+- simpler execution during the deposit
+- clearer proof after the deposit
+
 ---
 
 ## 🚀 Quick Start
@@ -87,6 +141,12 @@ Open `http://localhost:3000`
 - **Unified execution flow:** Quote → Approve → Deposit in one seamless flow
 - **Post-deposit verification:** Real portfolio position confirmation via API
 
+This project is not just a prettier landing page for yield products. It proposes a different interaction model for DeFi onboarding:
+
+- users think in time, not protocols
+- users confirm one guided route, not multiple disconnected steps
+- users see proof immediately after action, instead of being left on a generic success screen
+
 ### Completion
 - ✅ Live wallet connection
 - ✅ Real vault discovery & quoting
@@ -98,20 +158,28 @@ Open `http://localhost:3000`
 - Base-prioritized strategy reduces demo friction
 - Plain-language UX lowers DeFi entry barrier
 - Built-in verification closes trust loop
-
----
-
-## 👥 Team
-
-DeFi UX specialists focused on making on-chain saving feel like banking.
+- Familiar savings-style framing makes yield feel more approachable to mainstream users
 
 ---
 
 ## 🔮 Next Steps
 
-- [ ] Batch approvals (reduce gas for repeat users)
-- [ ] Risk indicators per vault
-- [ ] Multi-chain expansion post-Base validation
+- [ ] Add clearer risk labeling per strategy so users can compare "stable", "balanced", and "higher-yield" options without reading protocol docs
+- [ ] Improve the recommendation engine with richer personalization based on amount, preferred liquidity, and risk tolerance
+- [ ] Support multi-chain deposits more deeply after validating the Base-first onboarding path
+- [ ] Add smarter repeat-user flows like approval reuse, batched steps, and lower-friction re-depositing
+- [ ] Show better post-deposit analytics such as position history, earnings over time, and maturity projections
+- [ ] Expand the share experience so users can invite friends with proof of activity, not just abstract APY claims
+
+### What We Would Build Next
+
+If we continued this project beyond the hackathon, the next version of EarnGift would become a more complete saving product rather than a single deposit demo.
+
+The first priority would be **better recommendations**. Right now, the duration-first model is the main simplification layer. Next, we would add clearer risk-aware strategy selection, stronger reasoning behind each recommendation, and more beginner-friendly labels so users can understand *why* a strategy is being shown to them.
+
+The second priority would be **better proof and retention**. We want the post-deposit state to feel alive: earnings history, portfolio refresh confidence, clearer yield attribution, and stronger user feedback when indexing is still catching up. This is especially important for first-time DeFi users, because trust is built after the transaction, not before it.
+
+The third priority would be **broader product coverage**. That includes support for more assets, more chains, and more strategy types, while preserving the same simple entry point. The challenge is not adding more options to the user interface. The challenge is absorbing more protocol complexity without making the product feel more complicated.
 
 ---
 
