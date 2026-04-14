@@ -147,8 +147,8 @@ export function EarnExperience() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
-  const [approvalState, setApprovalState] = useState<"idle" | "active" | "complete">("idle");
-  const [depositState, setDepositState] = useState<"idle" | "active" | "complete">("idle");
+  const [approvalState, setApprovalState] = useState<"idle" | "active" | "complete" | "error">("idle");
+  const [depositState, setDepositState] = useState<"idle" | "active" | "complete" | "error">("idle");
   const [approvalHash, setApprovalHash] = useState<Hash | null>(null);
   const [depositHash, setDepositHash] = useState<Hash | null>(null);
   const [depositedAt, setDepositedAt] = useState<number | null>(null);
@@ -478,11 +478,21 @@ export function EarnExperience() {
       setStep("success");
       await refreshPortfolio(address);
     } catch (transactionIssue) {
-      setError(transactionIssue instanceof Error ? transactionIssue.message : "The deposit flow was interrupted.");
+      const message = transactionIssue instanceof Error ? transactionIssue.message : "The deposit flow was interrupted.";
+      setError(message);
       setStatusMessage(null);
       setStep("amount");
-      setApprovalState("idle");
-      setDepositState("idle");
+      // Determine which step failed based on current state
+      if (approvalState === "active") {
+        setApprovalState("error");
+        setDepositState("idle");
+      } else if (depositState === "active") {
+        setApprovalState("complete");
+        setDepositState("error");
+      } else {
+        setApprovalState("idle");
+        setDepositState("idle");
+      }
     }
   };
 
@@ -1012,13 +1022,13 @@ export function EarnExperience() {
                 <div className="space-y-4 rounded-[28px] border border-white/10 bg-white/[0.04] p-5">
                   <ProgressRow
                     title="Step 1: Approve funds"
-                    state={approvalState === "complete" ? "complete" : approvalState === "active" ? "active" : "pending"}
+                    state={approvalState === "complete" ? "complete" : approvalState === "active" ? "active" : approvalState === "error" ? "error" : "pending"}
                     hash={approvalHash}
                     scanUrl={approvalHash && strategy ? getExplorerUrl(strategy.chainId, approvalHash) : undefined}
                   />
                   <ProgressRow
                     title="Step 2: Deposit into the vault"
-                    state={depositState === "complete" ? "complete" : depositState === "active" ? "active" : "pending"}
+                    state={depositState === "complete" ? "complete" : depositState === "active" ? "active" : depositState === "error" ? "error" : "pending"}
                     hash={depositHash}
                     scanUrl={depositHash && strategy ? getExplorerUrl(strategy.chainId, depositHash) : undefined}
                   />
@@ -1163,7 +1173,7 @@ export function EarnExperience() {
                   </div>
                 )}
               </div>
-              <div className="mt-5 space-y-3">
+              <div className="mt-5 max-h-[320px] overflow-y-auto space-y-3 pr-1">
                 {portfolioPositions.length ? (
                   portfolioPositions.map((item, index) => (
                     <div key={`${item.chainId}-${item.vaultAddress}-${index}`} className="rounded-[22px] border border-white/10 bg-black/14 p-4">
@@ -1811,11 +1821,11 @@ function ProgressRow({
   scanUrl
 }: {
   title: string;
-  state: "complete" | "active" | "pending";
+  state: "complete" | "active" | "pending" | "error";
   hash?: string | null;
   scanUrl?: string;
 }) {
-  const text = state === "complete" ? "Complete" : state === "active" ? "Processing..." : "Pending";
+  const text = state === "complete" ? "Complete" : state === "active" ? "Processing..." : state === "error" ? "Cancelled" : "Pending";
 
   return (
     <div className="rounded-[22px] border border-white/10 bg-black/12 p-4">
@@ -1827,10 +1837,12 @@ function ProgressRow({
                 ? "border-emerald-300/35 bg-emerald-300/10 text-emerald-200"
                 : state === "active"
                   ? "border-[#ffb476]/50 bg-[#ffb476]/12 text-[#ffd4aa]"
-                  : "border-white/10 bg-white/[0.04] text-white/38"
+                  : state === "error"
+                    ? "border-rose-400/50 bg-rose-400/12 text-rose-300"
+                    : "border-white/10 bg-white/[0.04] text-white/38"
             }`}
           >
-            {state === "complete" ? "✓" : state === "active" ? "⟳" : "·"}
+            {state === "complete" ? "✓" : state === "active" ? "⟳" : state === "error" ? "✕" : "·"}
           </span>
           <span className="text-base text-white">{title}</span>
         </div>
