@@ -13,7 +13,7 @@
 </div>
 
 **Live Demo Website:** [https://earn-gift-li-fi.vercel.app](https://earn-gift-li-fi.vercel.app)  
-**Video Walkthrough:** [Demo Video](https://your-demo-link) <!-- Replace with actual link -->
+**Video Walkthrough:** [Demo Video](https://x.com/foxyInvesting/status/2044225259231166902?s=20) <!-- Replace with actual link -->
 
 ---
 
